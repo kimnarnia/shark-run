@@ -1,3 +1,5 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>샤크런</title>
 <style>
   :root {
@@ -399,8 +401,8 @@
   </div>
 
   <div class="controls-hint">
-    <span><kbd>짧게 탭</kbd> 숏점프</span>
-    <span><kbd>길게 누르기</kbd> 롱점프</span>
+    <span><kbd>탭 1번</kbd> 숏점프</span>
+    <span><kbd>빠르게 탭 2번</kbd> 롱점프</span>
   </div>
 
   <p class="credit">CHARGING SHARK CO. — 가상 수익금 최대 10,000원</p>
@@ -510,9 +512,9 @@
   // ---------- Game state ----------
   const GROUND_Y = 560;
   const GRAVITY = 2400;        // px/s^2, always applied
-  const SHORT_JUMP_V = -560;   // initial impulse on press (short hop if released immediately)
-  const HOLD_ACCEL = -2000;    // extra upward accel while the press is held
-  const MAX_HOLD = 0.18;       // seconds the hold can extend the jump
+  const SHORT_JUMP_V = -760;   // single tap — clears every normal obstacle on its own
+  const LONG_JUMP_V = -1080;   // a 2nd quick tap mid-jump upgrades it to a long jump (wide combos / aerial dodges)
+  const DOUBLE_TAP_WINDOW = 0.35; // seconds the 2nd tap has to land to upgrade the jump
   const BASE_SCROLL = 210;     // px/s at mult 1.0
   const BASE_METERS_PER_SEC = 6;
 
@@ -524,7 +526,7 @@
       hearts, invulnT, buffT, shakeT, shakeMag, coinsCollected, tickerX, curStageIdx, stageAnnounceT, preOpenT;
 
   function resetGame(){
-    player = { x:64, y:GROUND_Y-64, w:52, h:64, vy:0, onGround:true, holding:false, holdT:0, legPhase:0 };
+    player = { x:64, y:GROUND_Y-64, w:52, h:64, vy:0, onGround:true, jumpBuffered:false, jumpBufferT:0, landGraceT:0, legPhase:0 };
     obstacles = [];
     items = [];
     particles = [];
@@ -574,21 +576,23 @@
   }
   endRetryBtn.addEventListener('click', retry);
 
-  // ---------- Input (hold = variable jump height) ----------
+  // ---------- Input (tap = short jump, quick 2nd tap mid-air = long jump) ----------
   function pressStart(){
     if(state === 'start'){ startGame(); return; }
     if(state === 'gameover'){ retry(); return; }
     if(state !== 'playing') return;
-    if(player.onGround && !player.holding){
+    if(player.onGround){
       player.vy = SHORT_JUMP_V;
       player.onGround = false;
-      player.holding = true;
-      player.holdT = 0;
+      player.jumpBuffered = true;
+      player.jumpBufferT = 0;
       sfx.jump(false);
+    } else if(player.jumpBuffered && player.jumpBufferT <= DOUBLE_TAP_WINDOW && player.vy < 0){
+      player.vy = LONG_JUMP_V;
+      player.jumpBuffered = false;
+      sfx.jump(true);
+      spawnParticles(player.x+player.w/2, player.y+player.h, 8, COL.paper, 100);
     }
-  }
-  function pressEnd(){
-    player.holding = false;
   }
   function startGame(){ ensureAudio(); state='playing'; }
 
@@ -599,13 +603,7 @@
       pressStart();
     }
   });
-  window.addEventListener('keyup', (e)=>{
-    if(e.code === 'Space' || e.code === 'ArrowUp'){ pressEnd(); }
-  });
   canvas.addEventListener('pointerdown', (e)=>{ e.preventDefault(); ensureAudio(); pressStart(); });
-  window.addEventListener('pointerup', pressEnd);
-  window.addEventListener('pointercancel', pressEnd);
-  window.addEventListener('blur', pressEnd);
   document.addEventListener('visibilitychange', ()=>{ if(document.hidden && state==='playing') lastT = null; });
 
   // ---------- Spawning ----------
@@ -613,7 +611,7 @@
 
   function spawnGroundObstacle(kind, xOffset){
     const specs = {
-      rate: { w:38, h:104, label:'금리인상' },     // tall — needs a long press
+      rate: { w:36, h:70, label:'금리인상' },      // a single tap clears this with room to spare
       earnings: { w:46, h:42, label:'어닝쇼크' }   // low — a short tap clears it
     };
     const s = specs[kind];
@@ -621,7 +619,7 @@
   }
   function spawnAerialObstacle(xOffset){
     // flies low enough that a short hop passes under it — only a long jump collides
-    obstacles.push({ type:'short', aerial:true, x: LW + xOffset, y: 358, w:58, h:58, label:'공매도', hit:false });
+    obstacles.push({ type:'short', aerial:true, x: LW + xOffset, y: 265, w:58, h:80, label:'공매도', hit:false });
   }
   function spawnDollarArc(xOffset, count, baseY){
     for(let i=0;i<count;i++){
@@ -666,10 +664,10 @@
       } else if(roll < 0.9){
         spawnGroundObstacle('earnings', 0);
         spawnGroundObstacle('rate', 58);
-        spawnAerialObstacle(330);
+        spawnAerialObstacle(390);
       } else {
         spawnGroundObstacle('rate', 0);
-        spawnAerialObstacle(320);
+        spawnAerialObstacle(380);
       }
       if(Math.random() > 0.6) spawnDollarArc(170, 5, GROUND_Y-135);
     }
@@ -714,28 +712,26 @@
       updateRoadmapUI();
     }
 
-    // player physics — hold extends the jump, release lets gravity take over
-    if(player.holding){
-      player.holdT += dt;
-      if(player.holdT <= MAX_HOLD && player.vy < 0){
-        player.vy += HOLD_ACCEL * dt;
-      } else {
-        player.holding = false;
-      }
+    // player physics — a 2nd tap within DOUBLE_TAP_WINDOW upgrades the jump
+    if(player.jumpBuffered){
+      player.jumpBufferT += dt;
+      if(player.jumpBufferT > DOUBLE_TAP_WINDOW) player.jumpBuffered = false;
     }
     player.vy += GRAVITY * dt;
     player.y += player.vy * dt;
     if(player.y >= GROUND_Y - player.h){
+      if(!player.onGround) player.landGraceT = 0.09; // brief forgiveness right on touchdown
       player.y = GROUND_Y - player.h;
       player.onGround = true;
       player.vy = 0;
-      player.holding = false;
-      player.holdT = 0;
+      player.jumpBuffered = false;
+      player.jumpBufferT = 0;
     } else {
       player.onGround = false;
     }
     player.legPhase += dt * (player.onGround ? 11 : 0);
 
+    if(player.landGraceT > 0) player.landGraceT -= dt;
     if(invulnT > 0) invulnT -= dt;
     if(buffT > 0){
       buffT -= dt;
@@ -760,7 +756,7 @@
       const o = obstacles[i];
       o.x += dx;
       if(o.x + o.w < -20){ obstacles.splice(i,1); continue; }
-      if(!o.hit && invulnT<=0 && buffT<=0 && rectsOverlap(player.x+6,player.y+6,player.w-12,player.h-10, o.x,o.y,o.w,o.h)){
+      if(!o.hit && invulnT<=0 && buffT<=0 && player.landGraceT<=0 && rectsOverlap(player.x+11,player.y+9,player.w-22,player.h-14, o.x,o.y,o.w,o.h)){
         o.hit = true;
         hearts -= 1;
         invulnT = 1.4;
@@ -1126,12 +1122,12 @@
     for(let i=0;i<3;i++){
       ctx.font='16px sans-serif';
       ctx.fillStyle = i < hearts ? '#FF5A6E' : 'rgba(255,255,255,0.18)';
-      ctx.fillText('♥', LW-30-i*22, 34);
+      ctx.fillText('♥', LW-30-i*22, 60);
     }
     ctx.font = "11px 'JetBrains Mono', monospace";
     ctx.fillStyle = COL.green;
     ctx.textAlign='right';
-    ctx.fillText(currentWon().toLocaleString()+'원', LW-16, 54);
+    ctx.fillText(currentWon().toLocaleString()+'원', LW-16, 80);
     ctx.textAlign='left';
 
     if(buffT>0){
@@ -1188,7 +1184,7 @@
     panel(28,LH*0.28+130,LW-56,LH*0.24);
     ctx.font="12px 'Gothic A1', sans-serif";
     ctx.fillStyle=COL.paper;
-    ctx.fillText('짧게 탭 = 숏점프  ·  길게 누르면 롱점프', LW/2, LH*0.28+130+30);
+    ctx.fillText('탭 1번=숏점프  ·  빠르게 2번=롱점프', LW/2, LH*0.28+130+30);
     ctx.font="11px 'JetBrains Mono', monospace";
     ctx.fillStyle = COL.muted;
     ctx.fillText('최고 기록  '+Math.floor(best)+'m', LW/2, LH*0.28+130+56);
