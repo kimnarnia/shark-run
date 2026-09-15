@@ -1,0 +1,1224 @@
+<title>샤크런</title>
+<style>
+  :root {
+    --ink-950: #0A0F1F;
+    --ink-900: #10162B;
+    --ink-800: #1A2340;
+    --ink-700: #262F52;
+    --bezel-hi: #2C3760;
+    --paper: #F4F1E6;
+    --market-blue: #4C7EFF;
+    --dawn-pink: #FF8B6B;
+    --bull-gold: #F5B942;
+    --bull-gold-dim: #B98A2E;
+    --bear-red: #E5484D;
+    --gain-green: #34C795;
+    --shark-slate: #7C93B8;
+    --muted: #8892B0;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: radial-gradient(ellipse 120% 90% at 50% -10%, #182349 0%, var(--ink-950) 55%);
+    color: var(--paper);
+    margin: 0;
+    padding-block: 32px;
+    display: flex;
+    justify-content: center;
+    font-family: 'Gothic A1', 'Malgun Gothic', sans-serif;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 460px;
+    padding-inline: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    color: var(--bull-gold);
+    text-align: center;
+  }
+
+  h1 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-weight: 400;
+    font-size: clamp(34px, 9vw, 44px);
+    margin: 0;
+    text-align: center;
+    letter-spacing: 0.02em;
+    text-wrap: balance;
+    background: linear-gradient(180deg, #FFFFFF 0%, #C9D3F2 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 2px 0 rgba(0,0,0,0.25);
+  }
+
+  .tagline {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13.5px;
+    font-weight: 500;
+    margin: 0;
+    line-height: 1.6;
+    max-width: 320px;
+  }
+  .tagline b { color: var(--bull-gold); font-weight: 800; }
+
+  .cabinet {
+    position: relative;
+    width: 100%;
+    max-width: 380px;
+    padding: 14px;
+    border-radius: 28px;
+    background: linear-gradient(160deg, var(--bezel-hi) 0%, var(--ink-800) 45%, var(--ink-900) 100%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.08) inset,
+      0 30px 60px -20px rgba(0,0,0,0.7),
+      0 0 0 1px rgba(0,0,0,0.4);
+  }
+
+  .screen-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 380 / 722;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 0 0 3px #05070F, 0 0 0 4px rgba(255,255,255,0.06) inset;
+    background: #000;
+  }
+
+  canvas#game {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: none;
+    cursor: pointer;
+  }
+
+  .screen-glare {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(115deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0) 22%);
+  }
+
+  .sound-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(10,15,31,0.55);
+    color: var(--paper);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 7;
+    backdrop-filter: blur(2px);
+  }
+  .sound-toggle:focus-visible { outline: 2px solid var(--bull-gold); outline-offset: 2px; }
+
+  .roadmap {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    max-width: 380px;
+    gap: 6px;
+  }
+
+  .stage-chip {
+    flex: 1;
+    border-radius: 12px;
+    padding: 9px 8px 8px;
+    background: var(--ink-900);
+    border: 1px solid var(--ink-700);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .stage-chip .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+  .stage-chip .name {
+    font-family: 'Gothic A1', sans-serif;
+    font-weight: 800;
+    font-size: 12.5px;
+    color: var(--paper);
+  }
+  .stage-chip .range {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .stage-chip.active {
+    border-color: var(--bull-gold);
+    background: linear-gradient(180deg, rgba(245,185,66,0.14), rgba(245,185,66,0.04));
+  }
+  .stage-chip.active .num { color: var(--bull-gold); }
+
+  .controls-hint {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 11.5px;
+    font-family: 'JetBrains Mono', monospace;
+    flex-wrap: wrap;
+  }
+  .controls-hint kbd {
+    background: var(--ink-800);
+    border: 1px solid var(--ink-700);
+    border-radius: 5px;
+    padding: 2px 7px;
+    font-family: inherit;
+    color: var(--paper);
+  }
+
+  .credit {
+    color: #4C5578;
+    font-size: 10.5px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.03em;
+  }
+
+  /* ---------- End screen (DOM) ---------- */
+  .end-screen {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 22px 0;
+    background:
+      radial-gradient(120% 55% at 50% 0%, rgba(245,185,66,0.18), rgba(245,185,66,0) 62%),
+      linear-gradient(180deg, #101A3D 0%, #1C2C5E 55%, #32499A 100%);
+    overflow: hidden;
+  }
+  .end-screen.show { display: flex; }
+  .end-decor {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(2px 2px at 18% 16%, rgba(255,255,255,0.55) 0, transparent 60%),
+      radial-gradient(2px 2px at 72% 10%, rgba(255,255,255,0.4) 0, transparent 60%),
+      radial-gradient(1.5px 1.5px at 42% 26%, rgba(255,255,255,0.35) 0, transparent 60%),
+      radial-gradient(1.5px 1.5px at 86% 22%, rgba(255,255,255,0.3) 0, transparent 60%),
+      radial-gradient(1.5px 1.5px at 12% 34%, rgba(255,255,255,0.28) 0, transparent 60%);
+  }
+  .end-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  .end-headline {
+    font-family: 'Black Han Sans', sans-serif;
+    font-weight: 400;
+    font-size: 20px;
+    line-height: 1.42;
+    color: #fff;
+    text-align: center;
+    margin: 0 0 14px;
+    text-wrap: balance;
+  }
+  .end-bubble {
+    background: #fff;
+    color: #182349;
+    font-family: 'Gothic A1', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    padding: 9px 16px;
+    border-radius: 16px;
+    position: relative;
+    margin-bottom: 8px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  }
+  .end-bubble::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -7px;
+    transform: translateX(-50%);
+    border-width: 7px 6px 0;
+    border-style: solid;
+    border-color: #fff transparent transparent;
+  }
+  .end-shark {
+    width: 128px;
+    height: auto;
+    margin: 4px 0 8px;
+    filter: drop-shadow(0 10px 18px rgba(0,0,0,0.3));
+  }
+  .wave-arm { transform-origin: 150px 78px; animation: wave 1.1s ease-in-out infinite; }
+  @keyframes wave {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(-30deg); }
+  }
+  .end-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin-bottom: 10px;
+  }
+  .end-stats-label {
+    font-family: 'Gothic A1', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    color: #B9C4EC;
+    letter-spacing: 0.02em;
+  }
+  .end-stats-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 33px;
+    color: #F5B942;
+    font-variant-numeric: tabular-nums;
+  }
+  .end-stats-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #8FA0D6;
+    font-variant-numeric: tabular-nums;
+  }
+  .end-caption {
+    font-family: 'Gothic A1', sans-serif;
+    font-size: 11.5px;
+    color: #B9C4EC;
+    text-align: center;
+    margin: 0 0 16px;
+  }
+  .end-caption b { color: #FFD98A; }
+  .end-cta {
+    margin-top: auto;
+    width: calc(100% + 44px);
+    margin-inline: -22px;
+    border: none;
+    padding: 18px 0 17px;
+    background: #0A0F1F;
+    color: #fff;
+    font-family: 'Gothic A1', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .end-cta:active { background: #060911; }
+  .end-cta:focus-visible { outline: 2px solid var(--bull-gold); outline-offset: -3px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; }
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gothic+A1:wght@400;500;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<div class="page">
+  <div class="eyebrow">SHARK ON WALL ST.</div>
+  <h1>샤크런</h1>
+  <p class="tagline">뉴욕 증시 개장 5분 전, <b>초스</b>가 마이너스 폭락장을 뚫고<br>월스트리트 거래소로 전력 질주합니다.</p>
+
+  <div class="cabinet">
+    <div class="screen-wrap">
+      <canvas id="game"></canvas>
+      <div class="screen-glare"></div>
+      <button class="sound-toggle" id="soundToggle" aria-label="소리 켜기/끄기">🔊</button>
+
+      <div class="end-screen" id="endScreen" aria-hidden="true">
+        <div class="end-decor"></div>
+        <div class="end-content">
+          <p class="end-headline">폭락장을 뚫고<br>월가 코앞까지 왔다네</p>
+          <div class="end-bubble" id="endBubble">거의 다 왔어, 초스!</div>
+          <svg class="end-shark" viewBox="0 0 200 210" aria-hidden="true">
+            <rect x="66" y="168" width="16" height="26" rx="7" fill="#5E7396"/>
+            <rect x="118" y="168" width="16" height="26" rx="7" fill="#5E7396"/>
+            <path d="M40 70 Q40 24 100 24 Q160 24 160 70 L160 150 Q160 182 100 182 Q40 182 40 150 Z" fill="#7C93B8"/>
+            <ellipse cx="100" cy="118" rx="42" ry="56" fill="#F3EFE4"/>
+            <path d="M90 26 L108 -18 L124 30 Z" fill="#6B80A8"/>
+            <ellipse cx="52" cy="118" rx="12" ry="22" fill="#5E7396"/>
+            <g class="wave-arm"><ellipse cx="150" cy="70" rx="13" ry="24" fill="#5E7396"/></g>
+            <circle cx="78" cy="76" r="8" fill="#111"/>
+            <circle cx="112" cy="72" r="8" fill="#111"/>
+            <circle cx="81" cy="73" r="2.6" fill="#fff"/>
+            <circle cx="115" cy="69" r="2.6" fill="#fff"/>
+            <path d="M76 96 Q96 116 118 94" stroke="#3F4A66" stroke-width="5" fill="none" stroke-linecap="round"/>
+          </svg>
+          <div class="end-stats">
+            <span class="end-stats-label">지금까지 챙긴 수익금</span>
+            <span class="end-stats-value" id="endWon">0원</span>
+            <span class="end-stats-sub" id="endDistance">0m · 프리마켓</span>
+          </div>
+          <p class="end-caption">10,000원까지 모이면 <b>월가의 황소</b> 뱃지를 드려요</p>
+        </div>
+        <button class="end-cta" id="endRetryBtn">다시 출근하기</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="roadmap" id="roadmap">
+    <div class="stage-chip" data-stage="0">
+      <span class="num">STAGE 01</span>
+      <span class="name">프리마켓</span>
+      <span class="range">0–300m · x1.0</span>
+    </div>
+    <div class="stage-chip" data-stage="1">
+      <span class="num">STAGE 02</span>
+      <span class="name">개장 변동성</span>
+      <span class="range">301–700m · x1.3</span>
+    </div>
+    <div class="stage-chip" data-stage="2">
+      <span class="num">STAGE 03</span>
+      <span class="name">마녀의 날</span>
+      <span class="range">701m+ · x1.6</span>
+    </div>
+  </div>
+
+  <div class="controls-hint">
+    <span><kbd>짧게 탭</kbd> 숏점프</span>
+    <span><kbd>길게 누르기</kbd> 롱점프</span>
+  </div>
+
+  <p class="credit">CHARGING SHARK CO. — 가상 수익금 최대 10,000원</p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Canvas & responsive scaling ----------
+  const LW = 380, LH = 722; // logical coordinate space
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+
+  function resize(){
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+    ctx.setTransform(canvas.width / LW, 0, 0, canvas.height / LH, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+
+  // ---------- Palette ----------
+  const COL = {
+    dawnTop:'#3B2A6B', dawnMid:'#8A4E8F', dawnBot:'#FF8B6B',
+    dayTop:'#2E56C9', dayMid:'#4C7EFF', dayBot:'#9FC4FF',
+    stormTop:'#1A1024', stormMid:'#3D1620', stormBot:'#7A2430',
+    groundTop:'#3A3F55', groundFace:'#2A2E40', groundLine:'#4A5070',
+    buildFar:'#141B34', buildNear:'#0E1226',
+    shark:'#7C93B8', sharkDark:'#5E7396', belly:'#F3EFE4', finTip:'#6B80A8',
+    gold:'#F5B942', gold2:'#FFD98A', red:'#E5484D', green:'#34C795',
+    paper:'#F4F1E6', ink:'#0A0F1F', muted:'#8892B0'
+  };
+
+  function lerp(a,b,t){ return a+(b-a)*t; }
+  function lerpColor(c1,c2,t){
+    const p=(h)=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+    const a=p(c1), b=p(c2);
+    const r=Math.round(lerp(a[0],b[0],t)), g=Math.round(lerp(a[1],b[1],t)), bl=Math.round(lerp(a[2],b[2],t));
+    return `rgb(${r},${g},${bl})`;
+  }
+  function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+  function fmtClock(sec){
+    sec = Math.max(0, Math.ceil(sec));
+    const m = Math.floor(sec/60), s = sec%60;
+    return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  }
+
+  // ---------- Audio (lightweight synthesized SFX) ----------
+  let actx = null, soundOn = true;
+  function ensureAudio(){ if(!actx){ try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } }
+  function beep(freq, dur, type, gainVal, sweepTo){
+    if(!soundOn || !actx) return;
+    const t0 = actx.currentTime;
+    const osc = actx.createOscillator();
+    const gain = actx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq, t0);
+    if(sweepTo) osc.frequency.exponentialRampToValueAtTime(sweepTo, t0+dur);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(gainVal||0.12, t0+0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+    osc.connect(gain).connect(actx.destination);
+    osc.start(t0); osc.stop(t0+dur+0.02);
+  }
+  const sfx = {
+    jump: (long)=>beep(long?360:460, long?0.2:0.13, 'square', 0.08, long?720:640),
+    coin: ()=>beep(880,0.09,'square',0.07,1320),
+    hit: ()=>beep(160,0.28,'sawtooth',0.14,60),
+    buff: ()=>{ beep(520,0.22,'triangle',0.1,1040); setTimeout(()=>beep(780,0.22,'triangle',0.09,1560),90); },
+    stage: ()=>{ beep(660,0.12,'square',0.08,880); setTimeout(()=>beep(990,0.16,'square',0.08,1320),110); }
+  };
+  document.getElementById('soundToggle').addEventListener('click', ()=>{
+    ensureAudio();
+    soundOn = !soundOn;
+    document.getElementById('soundToggle').textContent = soundOn ? '🔊' : '🔇';
+  });
+
+  // ---------- Stage config ----------
+  const STAGES = [
+    { key:'premarket', name:'프리마켓', from:0, to:300, mult:1.0, spawnMin:78, spawnMax:112, sky:['dawnTop','dawnMid','dawnBot'],
+      tickers:['개장 5분 전, 프리마켓 거래 시작...','연준 발표 대기중...','초스, 출근 준비 완료'] },
+    { key:'open', name:'개장 변동성', from:300, to:700, mult:1.3, spawnMin:54, spawnMax:80, sky:['dayTop','dayMid','dayBot'],
+      tickers:['정규장 개장! 변동성 확대','금리 인상 우려 급부상','어닝쇼크 속출 중'] },
+    { key:'witching', name:'마녀의 날', from:700, to:Infinity, mult:1.6, spawnMin:40, spawnMax:60, sky:['stormTop','stormMid','stormBot'],
+      tickers:['쿼드러플 위칭 데이 돌입','공매도 세력 출현!','변동성 지수 폭등 중'] }
+  ];
+  function stageIndexAt(dist){
+    if(dist < STAGES[0].to) return 0;
+    if(dist < STAGES[1].to) return 1;
+    return 2;
+  }
+  function skyColorsAt(dist){
+    const idx = stageIndexAt(dist);
+    const cur = STAGES[idx];
+    const blendZone = 90;
+    let t = 0, next = null;
+    if(idx < 2){
+      const distToEdge = cur.to - dist;
+      if(distToEdge < blendZone){ t = 1 - (distToEdge/blendZone); next = STAGES[idx+1]; }
+    }
+    if(!next) return cur.sky.map(k=>COL[k]);
+    return cur.sky.map((k,i)=>lerpColor(COL[k], COL[next.sky[i]], clamp(t,0,1)));
+  }
+
+  // ---------- Game state ----------
+  const GROUND_Y = 560;
+  const GRAVITY = 2400;        // px/s^2, always applied
+  const SHORT_JUMP_V = -560;   // initial impulse on press (short hop if released immediately)
+  const HOLD_ACCEL = -2000;    // extra upward accel while the press is held
+  const MAX_HOLD = 0.18;       // seconds the hold can extend the jump
+  const BASE_SCROLL = 210;     // px/s at mult 1.0
+  const BASE_METERS_PER_SEC = 6;
+
+  let state = 'start'; // start | playing | gameover
+  let best = 0;
+  try { best = parseFloat(localStorage.getItem('sharkRunBest')||'0') || 0; } catch(e){}
+
+  let player, obstacles, items, particles, distance, elapsed, spawnTimer, nextSpawnGap,
+      hearts, invulnT, buffT, shakeT, shakeMag, coinsCollected, tickerX, curStageIdx, stageAnnounceT, preOpenT;
+
+  function resetGame(){
+    player = { x:64, y:GROUND_Y-64, w:52, h:64, vy:0, onGround:true, holding:false, holdT:0, legPhase:0 };
+    obstacles = [];
+    items = [];
+    particles = [];
+    distance = 0;
+    elapsed = 0;
+    spawnTimer = 0;
+    nextSpawnGap = 70;
+    hearts = 3;
+    invulnT = 0;
+    buffT = 0;
+    shakeT = 0; shakeMag = 0;
+    coinsCollected = 0;
+    tickerX = 0;
+    curStageIdx = 0;
+    stageAnnounceT = 1.4;
+  }
+  resetGame();
+  preOpenT = 300;
+
+  // ---------- End screen (DOM) ----------
+  const endScreen = document.getElementById('endScreen');
+  const endWonEl = document.getElementById('endWon');
+  const endDistanceEl = document.getElementById('endDistance');
+  const endBubbleEl = document.getElementById('endBubble');
+  const endRetryBtn = document.getElementById('endRetryBtn');
+  const bubbleLines = ['거의 다 왔어, 초스!','월가가 코앞이야!','조금만 더 힘내자!','불장이 기다리고 있어!'];
+
+  function currentWon(){
+    return Math.min(coinsCollected*120 + Math.floor(distance)*6, 10000);
+  }
+  function showEndScreen(){
+    endWonEl.textContent = currentWon().toLocaleString()+'원';
+    const record = distance >= best-0.5;
+    endDistanceEl.textContent = Math.floor(distance)+'m · '+STAGES[curStageIdx].name + (record?' · 🏆 신기록':'');
+    endBubbleEl.textContent = bubbleLines[Math.floor(Math.random()*bubbleLines.length)];
+    endScreen.classList.add('show');
+    endScreen.setAttribute('aria-hidden','false');
+  }
+  function hideEndScreen(){
+    endScreen.classList.remove('show');
+    endScreen.setAttribute('aria-hidden','true');
+  }
+  function retry(){
+    hideEndScreen();
+    resetGame();
+    state = 'playing';
+  }
+  endRetryBtn.addEventListener('click', retry);
+
+  // ---------- Input (hold = variable jump height) ----------
+  function pressStart(){
+    if(state === 'start'){ startGame(); return; }
+    if(state === 'gameover'){ retry(); return; }
+    if(state !== 'playing') return;
+    if(player.onGround && !player.holding){
+      player.vy = SHORT_JUMP_V;
+      player.onGround = false;
+      player.holding = true;
+      player.holdT = 0;
+      sfx.jump(false);
+    }
+  }
+  function pressEnd(){
+    player.holding = false;
+  }
+  function startGame(){ ensureAudio(); state='playing'; }
+
+  window.addEventListener('keydown', (e)=>{
+    if(e.code === 'Space' || e.code === 'ArrowUp'){
+      e.preventDefault();
+      if(e.repeat) return;
+      pressStart();
+    }
+  });
+  window.addEventListener('keyup', (e)=>{
+    if(e.code === 'Space' || e.code === 'ArrowUp'){ pressEnd(); }
+  });
+  canvas.addEventListener('pointerdown', (e)=>{ e.preventDefault(); ensureAudio(); pressStart(); });
+  window.addEventListener('pointerup', pressEnd);
+  window.addEventListener('pointercancel', pressEnd);
+  window.addEventListener('blur', pressEnd);
+  document.addEventListener('visibilitychange', ()=>{ if(document.hidden && state==='playing') lastT = null; });
+
+  // ---------- Spawning ----------
+  function pxSpeed(){ return BASE_SCROLL * STAGES[curStageIdx].mult; }
+
+  function spawnGroundObstacle(kind, xOffset){
+    const specs = {
+      rate: { w:38, h:104, label:'금리인상' },     // tall — needs a long press
+      earnings: { w:46, h:42, label:'어닝쇼크' }   // low — a short tap clears it
+    };
+    const s = specs[kind];
+    obstacles.push({ type:kind, aerial:false, x: LW + xOffset, y: GROUND_Y - s.h, w:s.w, h:s.h, label:s.label, hit:false });
+  }
+  function spawnAerialObstacle(xOffset){
+    // flies low enough that a short hop passes under it — only a long jump collides
+    obstacles.push({ type:'short', aerial:true, x: LW + xOffset, y: 358, w:58, h:58, label:'공매도', hit:false });
+  }
+  function spawnDollarArc(xOffset, count, baseY){
+    for(let i=0;i<count;i++){
+      const t = i/(count-1||1);
+      const arcY = baseY - Math.sin(t*Math.PI) * 70;
+      items.push({ type:'dollar', x: LW + xOffset + i*34, y: arcY, r:12, taken:false });
+    }
+  }
+  function spawnBuff(xOffset){
+    items.push({ type:'buff', x: LW + xOffset, y: GROUND_Y-140, r:18, taken:false, pulse:0 });
+  }
+
+  function spawnWave(){
+    const roll = Math.random();
+    if(curStageIdx === 0){
+      spawnGroundObstacle('rate', 0);
+      if(roll > 0.35) spawnDollarArc(130, 4, GROUND_Y-120);
+    } else if(curStageIdx === 1){
+      if(roll < 0.32){
+        spawnGroundObstacle('rate', 0);
+      } else if(roll < 0.58){
+        spawnGroundObstacle('earnings', 0);
+      } else if(roll < 0.8){
+        spawnGroundObstacle('rate', 0);
+        spawnGroundObstacle('earnings', 64);
+      } else {
+        spawnGroundObstacle('earnings', 0);
+        spawnGroundObstacle('rate', 60);
+      }
+      if(Math.random() > 0.5) spawnDollarArc(150, 4, GROUND_Y-130);
+    } else {
+      if(roll < 0.2){
+        spawnGroundObstacle('rate', 0);
+      } else if(roll < 0.38){
+        spawnGroundObstacle('earnings', 0);
+        spawnAerialObstacle(56);
+      } else if(roll < 0.56){
+        spawnAerialObstacle(0);
+      } else if(roll < 0.76){
+        spawnGroundObstacle('rate', 0);
+        spawnGroundObstacle('earnings', 62);
+      } else if(roll < 0.9){
+        spawnGroundObstacle('earnings', 0);
+        spawnGroundObstacle('rate', 58);
+        spawnAerialObstacle(330);
+      } else {
+        spawnGroundObstacle('rate', 0);
+        spawnAerialObstacle(320);
+      }
+      if(Math.random() > 0.6) spawnDollarArc(170, 5, GROUND_Y-135);
+    }
+    if(Math.random() < 0.05) spawnBuff(200);
+  }
+
+  // ---------- Particles ----------
+  function spawnParticles(x,y,n,color,speed){
+    for(let i=0;i<n;i++){
+      const a = Math.random()*Math.PI*2;
+      particles.push({ x,y, vx:Math.cos(a)*speed*(0.4+Math.random()*0.6), vy:Math.sin(a)*speed*(0.4+Math.random()*0.6)-40,
+        life:0.5+Math.random()*0.3, age:0, color, r:2+Math.random()*2 });
+    }
+  }
+
+  // ---------- Update ----------
+  let lastT = null;
+  function update(dt){
+    dt = Math.min(dt, 1/30);
+
+    if(state === 'start'){
+      preOpenT -= dt;
+      if(preOpenT <= 0) preOpenT = 300;
+      return;
+    }
+    if(state !== 'playing'){
+      if(invulnT>0) invulnT -= dt;
+      return;
+    }
+
+    elapsed += dt;
+    if(stageAnnounceT>0) stageAnnounceT -= dt;
+
+    const mult = STAGES[curStageIdx].mult;
+    distance += BASE_METERS_PER_SEC * mult * dt;
+
+    const newStageIdx = stageIndexAt(distance);
+    if(newStageIdx !== curStageIdx){
+      curStageIdx = newStageIdx;
+      stageAnnounceT = 1.6;
+      sfx.stage();
+      updateRoadmapUI();
+    }
+
+    // player physics — hold extends the jump, release lets gravity take over
+    if(player.holding){
+      player.holdT += dt;
+      if(player.holdT <= MAX_HOLD && player.vy < 0){
+        player.vy += HOLD_ACCEL * dt;
+      } else {
+        player.holding = false;
+      }
+    }
+    player.vy += GRAVITY * dt;
+    player.y += player.vy * dt;
+    if(player.y >= GROUND_Y - player.h){
+      player.y = GROUND_Y - player.h;
+      player.onGround = true;
+      player.vy = 0;
+      player.holding = false;
+      player.holdT = 0;
+    } else {
+      player.onGround = false;
+    }
+    player.legPhase += dt * (player.onGround ? 11 : 0);
+
+    if(invulnT > 0) invulnT -= dt;
+    if(buffT > 0){
+      buffT -= dt;
+      spawnParticles(player.x+player.w/2, player.y+player.h/2, 1, COL.gold, 12);
+    }
+    if(shakeT > 0) shakeT -= dt;
+
+    // spawn logic
+    spawnTimer += dt*60;
+    if(spawnTimer >= nextSpawnGap){
+      spawnTimer = 0;
+      const st = STAGES[curStageIdx];
+      nextSpawnGap = lerp(st.spawnMin, st.spawnMax, Math.random());
+      spawnWave();
+    }
+
+    const speed = pxSpeed() * dt;
+    const dx = -speed;
+
+    // obstacles
+    for(let i=obstacles.length-1;i>=0;i--){
+      const o = obstacles[i];
+      o.x += dx;
+      if(o.x + o.w < -20){ obstacles.splice(i,1); continue; }
+      if(!o.hit && invulnT<=0 && buffT<=0 && rectsOverlap(player.x+6,player.y+6,player.w-12,player.h-10, o.x,o.y,o.w,o.h)){
+        o.hit = true;
+        hearts -= 1;
+        invulnT = 1.4;
+        shakeT = 0.35; shakeMag = 10;
+        sfx.hit();
+        spawnParticles(player.x+player.w/2, player.y+player.h/2, 10, COL.red, 140);
+        if(hearts <= 0){ endGame(); return; }
+      } else if(!o.hit && buffT>0 && rectsOverlap(player.x,player.y,player.w,player.h, o.x,o.y,o.w,o.h)){
+        o.hit = true;
+        spawnParticles(o.x+o.w/2, o.y+o.h/2, 8, COL.gold, 120);
+      }
+    }
+
+    // items
+    for(let i=items.length-1;i>=0;i--){
+      const it = items[i];
+      it.x += dx;
+      if(it.x < -40){ items.splice(i,1); continue; }
+      if(it.type==='buff') it.pulse += dt;
+      if(!it.taken){
+        const r = it.r;
+        if(rectsOverlap(player.x,player.y,player.w,player.h, it.x-r,it.y-r,r*2,r*2)){
+          it.taken = true;
+          if(it.type==='dollar'){
+            coinsCollected++;
+            sfx.coin();
+            spawnParticles(it.x,it.y,5,COL.green,70);
+          } else if(it.type==='buff'){
+            buffT = 5;
+            sfx.buff();
+            spawnParticles(it.x,it.y,16,COL.gold,150);
+          }
+          items.splice(i,1);
+        }
+      }
+    }
+
+    // particles
+    for(let i=particles.length-1;i>=0;i--){
+      const p = particles[i];
+      p.age += dt;
+      if(p.age >= p.life){ particles.splice(i,1); continue; }
+      p.x += p.vx*dt; p.y += p.vy*dt; p.vy += 260*dt;
+    }
+
+    tickerX -= 46*dt;
+  }
+
+  function rectsOverlap(ax,ay,aw,ah,bx,by,bw,bh){
+    return ax < bx+bw && ax+aw > bx && ay < by+bh && ay+ah > by;
+  }
+
+  function endGame(){
+    state = 'gameover';
+    if(distance > best){
+      best = distance;
+      try{ localStorage.setItem('sharkRunBest', String(best)); }catch(e){}
+    }
+    showEndScreen();
+  }
+
+  // ---------- Drawing ----------
+  function draw(){
+    ctx.clearRect(0,0,LW,LH);
+
+    let ox=0, oy=0;
+    if(shakeT>0){ ox=(Math.random()-0.5)*shakeMag; oy=(Math.random()-0.5)*shakeMag; }
+    ctx.save();
+    ctx.translate(ox,oy);
+
+    drawSky();
+    drawBuildings();
+    drawGroundStrip();
+
+    for(const it of items) drawItem(it);
+    for(const o of obstacles) drawObstacle(o);
+    drawShark();
+    for(const p of particles){
+      ctx.globalAlpha = clamp(1-p.age/p.life,0,1);
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    drawHUD();
+    ctx.restore();
+
+    if(state==='start') drawOverlayStart();
+  }
+
+  function drawSky(){
+    const [top,mid,bot] = skyColorsAt(distance);
+    const g = ctx.createLinearGradient(0,0,0,GROUND_Y);
+    g.addColorStop(0, top); g.addColorStop(0.55, mid); g.addColorStop(1, bot);
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,LW,GROUND_Y);
+
+    if(curStageIdx===2 && Math.random() < 0.004){
+      ctx.fillStyle = 'rgba(255,255,255,0.18)';
+      ctx.fillRect(0,0,LW,GROUND_Y);
+    }
+  }
+
+  const buildingsFar = seedBuildings(9, 40, 90, 120);
+  const buildingsNear = seedBuildings(6, 60, 130, 180);
+  function seedBuildings(n, minW, maxW, maxH){
+    const arr = []; let x=0;
+    for(let i=0;i<n;i++){
+      const w = minW + Math.random()*(maxW-minW);
+      const h = 60 + Math.random()*maxH;
+      arr.push({w,h,windows: Math.random()>0.4});
+      x+=w;
+    }
+    arr.totalW = x;
+    return arr;
+  }
+  function drawBuildingLayer(list, worldX, color, baseY){
+    const totalW = list.totalW;
+    let startOffset = ((worldX % totalW)+totalW) % totalW;
+    let x = -startOffset;
+    let i = 0;
+    ctx.fillStyle = color;
+    while(x < LW){
+      const b = list[i % list.length];
+      const bx = x, bh = b.h, by = baseY - bh;
+      ctx.fillRect(bx, by, b.w-4, bh);
+      if(b.windows){
+        ctx.fillStyle = 'rgba(255,215,140,0.35)';
+        for(let wy=by+10; wy<baseY-10; wy+=16){
+          for(let wx=bx+6; wx<bx+b.w-10; wx+=12){
+            if(Math.random()<0.6) ctx.fillRect(wx,wy,4,7);
+          }
+        }
+        ctx.fillStyle = color;
+      }
+      x += b.w; i++;
+    }
+    const bullPeriod = 900;
+    let bwx = -(((worldX*0.6) % bullPeriod)+bullPeriod)%bullPeriod + 60;
+    if(bwx < LW){
+      drawBullSilhouette(bwx, baseY, color);
+    }
+  }
+  function drawBullSilhouette(x,baseY,color){
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x, baseY);
+    ctx.quadraticCurveTo(x-6, baseY-30, x+8, baseY-42);
+    ctx.quadraticCurveTo(x+16,baseY-52, x+30,baseY-46);
+    ctx.quadraticCurveTo(x+40,baseY-40, x+46,baseY-20);
+    ctx.quadraticCurveTo(x+52,baseY-10, x+58,baseY);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawBuildings(){
+    const wx = distance * 3;
+    drawBuildingLayer(buildingsFar, wx*0.35, COL.buildFar, GROUND_Y-4);
+    drawBuildingLayer(buildingsNear, wx*0.6, COL.buildNear, GROUND_Y+2);
+  }
+
+  function drawGroundStrip(){
+    ctx.fillStyle = COL.groundFace;
+    ctx.fillRect(0, GROUND_Y, LW, LH-GROUND_Y);
+    ctx.fillStyle = COL.groundTop;
+    ctx.fillRect(0, GROUND_Y, LW, 6);
+
+    ctx.strokeStyle = COL.groundLine;
+    ctx.lineWidth = 3;
+    const off = (distance*40) % 48;
+    ctx.beginPath();
+    for(let x=-off; x<LW; x+=48){
+      ctx.moveTo(x, GROUND_Y+28);
+      ctx.lineTo(x+26, GROUND_Y+28);
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fillRect(0, GROUND_Y+50, LW, 22);
+    const tickerStr = '   ' + STAGES[curStageIdx].tickers.join('     ·     ') + '   ';
+    ctx.font = "11px 'JetBrains Mono', monospace";
+    ctx.fillStyle = COL.gold;
+    ctx.textBaseline = 'middle';
+    const tw = ctx.measureText(tickerStr).width || 300;
+    let tx = tickerX % tw;
+    if(tx>0) tx -= tw;
+    for(let x=tx; x<LW; x+=tw){
+      ctx.fillText(tickerStr, x, GROUND_Y+61);
+    }
+  }
+
+  function drawShark(){
+    const flashHidden = invulnT>0 && Math.floor(invulnT*14)%2===0;
+    if(flashHidden) return;
+
+    const {x,y,w,h} = player;
+    ctx.save();
+    ctx.translate(x+w/2, y+h/2);
+
+    if(buffT>0){
+      const pulse = 6+Math.sin(elapsed*10)*3;
+      ctx.save();
+      ctx.globalAlpha = 0.35;
+      ctx.fillStyle = COL.gold;
+      ctx.beginPath(); ctx.ellipse(0, h*0.1, w*0.62+pulse, h*0.58+pulse, 0,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
+
+    ctx.translate(-w/2,-h/2);
+    const legSwing = player.onGround ? Math.sin(player.legPhase)*10 : 0;
+
+    ctx.fillStyle = COL.sharkDark;
+    ctx.save(); ctx.translate(w*0.32,h*0.86); ctx.rotate(legSwing*0.03);
+    ctx.fillRect(-5,0,10,14); ctx.restore();
+    ctx.save(); ctx.translate(w*0.62,h*0.86); ctx.rotate(-legSwing*0.03);
+    ctx.fillRect(-5,0,10,14); ctx.restore();
+
+    ctx.fillStyle = COL.shark;
+    roundRect(w*0.06,h*0.16,w*0.88,h*0.72,w*0.36);
+    ctx.fill();
+
+    ctx.fillStyle = COL.belly;
+    ctx.beginPath();
+    ctx.ellipse(w*0.5,h*0.62,w*0.28,h*0.32,0,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle = COL.finTip;
+    ctx.beginPath();
+    ctx.moveTo(w*0.42,h*0.14); ctx.lineTo(w*0.56,-h*0.10); ctx.lineTo(w*0.64,h*0.2);
+    ctx.closePath(); ctx.fill();
+
+    ctx.fillStyle = COL.sharkDark;
+    ctx.save();
+    ctx.translate(w*0.86,h*0.5);
+    ctx.rotate(player.onGround ? Math.sin(player.legPhase+1)*0.3 : -0.6);
+    ctx.beginPath(); ctx.ellipse(0,6,7,14,0,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+
+    ctx.fillStyle = '#111';
+    ctx.beginPath(); ctx.arc(w*0.34,h*0.34,4.2,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(w*0.5,h*0.32,4.2,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#fff';
+    ctx.beginPath(); ctx.arc(w*0.35,h*0.325,1.3,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(w*0.51,h*0.305,1.3,0,Math.PI*2); ctx.fill();
+
+    ctx.strokeStyle='#3F4A66'; ctx.lineWidth=2; ctx.lineCap='round';
+    ctx.beginPath(); ctx.arc(w*0.42,h*0.46,7,0.1*Math.PI,0.85*Math.PI); ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function roundRect(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+
+  function drawObstacle(o){
+    ctx.save();
+    if(o.aerial){
+      const bob = Math.sin(elapsed*8 + o.x*0.05)*4;
+      ctx.translate(o.x, o.y+bob);
+      ctx.fillStyle = '#2A1420';
+      ctx.beginPath();
+      ctx.ellipse(o.w/2, o.h/2, o.w/2, o.h/2.6, 0,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = COL.red;
+      ctx.beginPath(); ctx.moveTo(0,o.h*0.35); ctx.lineTo(-16,o.h*0.1); ctx.lineTo(2,o.h*0.5); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(o.w,o.h*0.35); ctx.lineTo(o.w+16,o.h*0.1); ctx.lineTo(o.w-2,o.h*0.5); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#FF5A5A';
+      ctx.beginPath(); ctx.arc(o.w*0.38,o.h*0.42,2.6,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(o.w*0.6,o.h*0.42,2.6,0,Math.PI*2); ctx.fill();
+      drawTag(o.w/2, -6, o.label, COL.red);
+    } else if(o.type==='rate'){
+      ctx.translate(o.x,o.y);
+      ctx.fillStyle = '#5A5E70';
+      ctx.fillRect(o.w/2-3, o.h*0.35, 6, o.h*0.65);
+      ctx.fillStyle = COL.red;
+      ctx.beginPath(); ctx.arc(o.w/2,o.h*0.2,o.w/2,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle='#fff'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.arc(o.w/2,o.h*0.2,o.w/2-3,0,Math.PI*2); ctx.stroke();
+      ctx.fillStyle='#fff';
+      ctx.font = "bold 13px 'Gothic A1', sans-serif";
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('%↑', o.w/2, o.h*0.22);
+      drawTag(o.w/2, -4, o.label, COL.red);
+    } else if(o.type==='earnings'){
+      ctx.translate(o.x,o.y);
+      ctx.fillStyle = COL.red;
+      spikyBlob(o.w/2,o.h*0.55,o.w*0.5,9);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = "bold 10px 'Gothic A1', sans-serif";
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('▼', o.w/2, o.h*0.55);
+      drawTag(o.w/2, -4, o.label, COL.red);
+    }
+    ctx.restore();
+  }
+  function spikyBlob(cx,cy,r,spikes){
+    ctx.beginPath();
+    for(let i=0;i<spikes*2;i++){
+      const rad = i%2===0 ? r : r*0.62;
+      const ang = (Math.PI*2*i)/(spikes*2) - Math.PI/2;
+      const px = cx+Math.cos(ang)*rad, py=cy+Math.sin(ang)*rad;
+      if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.closePath();
+  }
+  function drawTag(cx,topY,label,color){
+    ctx.font = "9px 'Gothic A1', sans-serif";
+    ctx.textAlign='center';
+    const tw = ctx.measureText(label).width+8;
+    ctx.fillStyle = 'rgba(10,15,31,0.75)';
+    roundRect(cx-tw/2, topY-12, tw, 13, 4); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.textBaseline='middle';
+    ctx.fillText(label, cx, topY-5.5);
+  }
+
+  function drawItem(it){
+    ctx.save();
+    if(it.type==='dollar'){
+      ctx.translate(it.x,it.y);
+      ctx.fillStyle = COL.green;
+      ctx.beginPath(); ctx.arc(0,0,it.r,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#0E3D2E';
+      ctx.font="bold 13px 'JetBrains Mono', monospace";
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('$',0,1);
+    } else if(it.type==='buff'){
+      const p = Math.sin(it.pulse*6)*3;
+      ctx.translate(it.x,it.y);
+      ctx.globalAlpha = 0.4;
+      ctx.fillStyle = COL.gold;
+      ctx.beginPath(); ctx.arc(0,0,it.r+6+p,0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = COL.gold;
+      ctx.beginPath(); ctx.arc(0,0,it.r,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#7A4E10';
+      ctx.beginPath(); ctx.moveTo(-8,-6); ctx.quadraticCurveTo(-14,-16,-8,-18); ctx.quadraticCurveTo(-4,-12,-2,-4); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(8,-6); ctx.quadraticCurveTo(14,-16,8,-18); ctx.quadraticCurveTo(4,-12,2,-4); ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawHUD(){
+    if(state !== 'playing') return;
+    ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+    ctx.font = "bold 26px 'JetBrains Mono', monospace";
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.fillText(Math.floor(distance)+'m', 17, 43);
+    ctx.fillStyle = COL.paper;
+    ctx.fillText(Math.floor(distance)+'m', 16, 42);
+
+    ctx.font = "10px 'JetBrains Mono', monospace";
+    ctx.fillStyle = COL.gold;
+    ctx.fillText(STAGES[curStageIdx].name.toUpperCase(), 16, 58);
+
+    for(let i=0;i<3;i++){
+      ctx.font='16px sans-serif';
+      ctx.fillStyle = i < hearts ? '#FF5A6E' : 'rgba(255,255,255,0.18)';
+      ctx.fillText('♥', LW-30-i*22, 34);
+    }
+    ctx.font = "11px 'JetBrains Mono', monospace";
+    ctx.fillStyle = COL.green;
+    ctx.textAlign='right';
+    ctx.fillText(currentWon().toLocaleString()+'원', LW-16, 54);
+    ctx.textAlign='left';
+
+    if(buffT>0){
+      ctx.fillStyle = COL.gold;
+      ctx.font = "bold 11px 'Gothic A1', sans-serif";
+      ctx.textAlign='center';
+      ctx.fillText('🐂 불장 에너지 ' + buffT.toFixed(1)+'s', LW/2, 30);
+      ctx.textAlign='left';
+    }
+
+    if(stageAnnounceT>0){
+      const a = clamp(stageAnnounceT/1.6,0,1);
+      ctx.globalAlpha = Math.min(a*2,1);
+      ctx.textAlign='center';
+      ctx.font = "22px 'Black Han Sans', sans-serif";
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.fillText(STAGES[curStageIdx].name, LW/2+2, LH*0.32+2);
+      ctx.fillStyle = COL.gold;
+      ctx.fillText(STAGES[curStageIdx].name, LW/2, LH*0.32);
+      ctx.globalAlpha = 1;
+      ctx.textAlign='left';
+    }
+  }
+
+  function panel(x,y,w,h){
+    ctx.fillStyle = 'rgba(10,15,31,0.78)';
+    roundRect(x,y,w,h,18); ctx.fill();
+    ctx.strokeStyle = 'rgba(245,185,66,0.5)'; ctx.lineWidth=1.5;
+    roundRect(x,y,w,h,18); ctx.stroke();
+  }
+
+  function drawOverlayStart(){
+    ctx.fillStyle='rgba(6,9,20,0.6)';
+    ctx.fillRect(0,0,LW,LH);
+
+    ctx.textAlign='center';
+    ctx.fillStyle='rgba(0,0,0,0.4)';
+    ctx.font="40px 'Black Han Sans', sans-serif";
+    ctx.fillText('SHARK RUN', LW/2+2, LH*0.28+2);
+    ctx.fillStyle=COL.paper;
+    ctx.fillText('SHARK RUN', LW/2, LH*0.28);
+
+    ctx.font = "bold 13px 'JetBrains Mono', monospace";
+    ctx.fillStyle = COL.muted;
+    ctx.fillText('개장까지', LW/2, LH*0.28+34);
+    ctx.font = "bold 30px 'JetBrains Mono', monospace";
+    ctx.fillStyle = preOpenT<60 ? COL.red : COL.gold;
+    ctx.fillText(fmtClock(preOpenT), LW/2, LH*0.28+70);
+
+    ctx.font = "20px 'Black Han Sans', sans-serif";
+    ctx.fillStyle = '#fff';
+    ctx.fillText('월가로 달려라!', LW/2, LH*0.28+108);
+
+    panel(28,LH*0.28+130,LW-56,LH*0.24);
+    ctx.font="12px 'Gothic A1', sans-serif";
+    ctx.fillStyle=COL.paper;
+    ctx.fillText('짧게 탭 = 숏점프  ·  길게 누르면 롱점프', LW/2, LH*0.28+130+30);
+    ctx.font="11px 'JetBrains Mono', monospace";
+    ctx.fillStyle = COL.muted;
+    ctx.fillText('최고 기록  '+Math.floor(best)+'m', LW/2, LH*0.28+130+56);
+
+    ctx.fillStyle = COL.gold;
+    roundRect(LW/2-74, LH*0.28+130+78, 148, 42, 21); ctx.fill();
+    ctx.fillStyle = '#241505';
+    ctx.font="bold 14px 'Gothic A1', sans-serif";
+    ctx.fillText('출근 시작', LW/2, LH*0.28+130+104);
+    ctx.textAlign='left';
+  }
+
+  function updateRoadmapUI(){
+    document.querySelectorAll('.stage-chip').forEach((el,i)=>{
+      el.classList.toggle('active', i===curStageIdx);
+    });
+  }
+
+  // ---------- Loop ----------
+  function frame(t){
+    if(lastT===null) lastT = t;
+    const dt = (t-lastT)/1000;
+    lastT = t;
+    update(dt);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  resize();
+  updateRoadmapUI();
+  requestAnimationFrame(frame);
+})();
+</script>
