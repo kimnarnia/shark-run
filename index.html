@@ -1162,16 +1162,15 @@
     ctx.fillStyle = COL.gold;
     ctx.fillText(STAGES[curStageIdx].name.toUpperCase(), 16, 58);
 
+    ctx.font = "11px 'JetBrains Mono', monospace";
+    ctx.fillStyle = COL.green;
+    ctx.fillText(currentWon().toLocaleString()+'원', 16, 74);
+
     for(let i=0;i<3;i++){
       ctx.font='16px sans-serif';
       ctx.fillStyle = i < hearts ? '#FF5A6E' : 'rgba(255,255,255,0.18)';
       ctx.fillText('♥', LW-30-i*22, 60);
     }
-    ctx.font = "11px 'JetBrains Mono', monospace";
-    ctx.fillStyle = COL.green;
-    ctx.textAlign='right';
-    ctx.fillText(currentWon().toLocaleString()+'원', LW-16, 80);
-    ctx.textAlign='left';
 
     if(buffT>0){
       ctx.fillStyle = COL.gold;
