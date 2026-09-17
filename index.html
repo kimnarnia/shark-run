@@ -407,6 +407,42 @@
     margin: 6px 0 0;
   }
   .secret-sub b { color: #FFD98A; }
+  .nick-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 4px 0 2px;
+  }
+  .nick-label {
+    font-family: 'Mona12TextKR', sans-serif;
+    font-size: 11px;
+    color: #8FA0D6;
+  }
+  .nick-input {
+    display: none;
+    width: 110px;
+    font-family: 'Mona12TextKR', sans-serif;
+    font-size: 12px;
+    color: #182349;
+    background: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 8px;
+  }
+  .nick-row.editing .nick-label { display: none; }
+  .nick-row.editing .nick-input { display: inline-block; }
+  .nick-edit-btn {
+    border: none;
+    background: none;
+    color: #FFD98A;
+    font-family: 'Mona12TextKR', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 2px 4px;
+  }
   .end-actions {
     margin-top: auto;
     width: calc(100% + 44px);
@@ -508,6 +544,11 @@
             <span class="secret-tag" id="secretTag">🎉 TOP 3 공개!</span>
             <p class="secret-list" id="secretList"></p>
             <p class="secret-sub" id="secretSub"></p>
+          </div>
+          <div class="nick-row" id="nickRow">
+            <span class="nick-label" id="nickLabel">닉네임: -</span>
+            <input class="nick-input" id="nickInput" maxlength="10" autocomplete="off">
+            <button type="button" class="nick-edit-btn" id="nickEditBtn">수정</button>
           </div>
         </div>
         <div class="end-actions">
@@ -706,6 +747,34 @@
     return name;
   }
 
+  const nickRow = document.getElementById('nickRow');
+  const nickLabel = document.getElementById('nickLabel');
+  const nickInput = document.getElementById('nickInput');
+  const nickEditBtn = document.getElementById('nickEditBtn');
+  function refreshNickLabel(){
+    nickLabel.textContent = '닉네임: ' + myNick();
+  }
+  function saveNickEdit(){
+    const v = nickInput.value.trim().slice(0,10);
+    if(v){ try { localStorage.setItem('sharkRunNick', v); } catch(e){} }
+    refreshNickLabel();
+    nickRow.classList.remove('editing');
+    nickEditBtn.textContent = '수정';
+  }
+  nickEditBtn.addEventListener('click', ()=>{
+    if(nickRow.classList.contains('editing')){
+      saveNickEdit();
+    } else {
+      nickInput.value = myNick();
+      nickRow.classList.add('editing');
+      nickEditBtn.textContent = '저장';
+      nickInput.focus();
+    }
+  });
+  nickInput.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter') saveNickEdit();
+  });
+
   function shareChallenge(){
     const won = currentWon();
     const name = myNick();
@@ -777,6 +846,9 @@
   function showEndScreen(){
     const won = currentWon();
     endWonEl.textContent = won.toLocaleString()+'원';
+    refreshNickLabel();
+    nickRow.classList.remove('editing');
+    nickEditBtn.textContent = '수정';
     const record = distance >= best-0.5;
     endDistanceEl.textContent = Math.floor(distance)+'m · '+STAGES[curStageIdx].name + (record?' · 🏆 신기록':'');
     if(challengeWon){
