@@ -525,6 +525,12 @@
     document.getElementById('soundToggle').textContent = soundOn ? '🔊' : '🔇';
   });
 
+  // ---------- Historical bear/bull market labels ----------
+  const BEAR_TALL = ['대공황','오일쇼크','닷컴버블','금융위기'];   // -48% ~ -86% drawdowns — the tall, long-jump-only obstacle
+  const BEAR_SHORT = ['코로나쇼크','긴축장'];                     // -25% ~ -34% — the low, single-tap obstacle
+  const BEAR_AERIAL = '블랙먼데이';                                // a single brutal day — the aerial dive-bomb
+  const BULL_RALLIES = ['레이건랠리','닷컴붐','원자재랠리','최장기불장','유동성파티','AI랠리'];
+
   // ---------- Stage config ----------
   const STAGES = [
     { key:'premarket', name:'프리마켓', from:0, to:300, mult:1.0, spawnMin:78, spawnMax:112, sky:['dawnTop','dawnMid','dawnBot'],
@@ -566,7 +572,8 @@
   try { best = parseFloat(localStorage.getItem('sharkRunBest')||'0') || 0; } catch(e){}
 
   let player, obstacles, items, particles, distance, elapsed, spawnTimer, nextSpawnGap,
-      hearts, invulnT, buffT, shakeT, shakeMag, coinsCollected, tickerX, curStageIdx, stageAnnounceT, preOpenT;
+      hearts, invulnT, buffT, activeBuffLabel, shakeT, shakeMag, coinsCollected, tickerX, curStageIdx, stageAnnounceT, preOpenT,
+      trendPoints, trendNextWx;
 
   function resetGame(){
     player = { x:64, y:GROUND_Y-64, w:52, h:64, vy:0, onGround:true, jumpBuffered:false, jumpBufferT:0, landGraceT:0, legPhase:0 };
@@ -580,11 +587,14 @@
     hearts = 3;
     invulnT = 0;
     buffT = 0;
+    activeBuffLabel = '';
     shakeT = 0; shakeMag = 0;
     coinsCollected = 0;
     tickerX = 0;
     curStageIdx = 0;
     stageAnnounceT = 1.4;
+    trendPoints = [{x:0,y:175,up:false}];
+    trendNextWx = 0;
   }
   resetGame();
   preOpenT = 300;
@@ -654,15 +664,16 @@
 
   function spawnGroundObstacle(kind, xOffset){
     const specs = {
-      rate: { w:36, h:70, label:'금리인상' },      // a single tap clears this with room to spare
-      earnings: { w:46, h:42, label:'어닝쇼크' }   // low — a short tap clears it
+      rate: { w:36, h:70, labels:BEAR_TALL },      // a single tap clears this with room to spare
+      earnings: { w:46, h:42, labels:BEAR_SHORT }  // low — a short tap clears it
     };
     const s = specs[kind];
-    obstacles.push({ type:kind, aerial:false, x: LW + xOffset, y: GROUND_Y - s.h, w:s.w, h:s.h, label:s.label, hit:false });
+    const label = s.labels[Math.floor(Math.random()*s.labels.length)];
+    obstacles.push({ type:kind, aerial:false, x: LW + xOffset, y: GROUND_Y - s.h, w:s.w, h:s.h, label, hit:false });
   }
   function spawnAerialObstacle(xOffset){
     // flies low enough that a short hop passes under it — only a long jump collides
-    obstacles.push({ type:'short', aerial:true, x: LW + xOffset, y: 265, w:58, h:80, label:'공매도', hit:false });
+    obstacles.push({ type:'short', aerial:true, x: LW + xOffset, y: 265, w:58, h:80, label:BEAR_AERIAL, hit:false });
   }
   function spawnDollarArc(xOffset, count, baseY){
     for(let i=0;i<count;i++){
@@ -672,7 +683,8 @@
     }
   }
   function spawnBuff(xOffset){
-    items.push({ type:'buff', x: LW + xOffset, y: GROUND_Y-140, r:18, taken:false, pulse:0 });
+    const label = BULL_RALLIES[Math.floor(Math.random()*BULL_RALLIES.length)];
+    items.push({ type:'buff', x: LW + xOffset, y: GROUND_Y-140, r:18, taken:false, pulse:0, label });
   }
 
   function spawnWave(){
@@ -829,6 +841,7 @@
             spawnParticles(it.x,it.y,5,COL.green,70);
           } else if(it.type==='buff'){
             buffT = 5;
+            activeBuffLabel = it.label;
             sfx.buff();
             spawnParticles(it.x,it.y,16,COL.gold,150);
           }
@@ -846,6 +859,19 @@
     }
 
     tickerX -= 46*dt;
+
+    // scrolling bear/bull trend-line background — biased down normally, up while buffed
+    const trendWx = distance*1.35;
+    while(trendNextWx < trendWx + LW + 60){
+      const prev = trendPoints[trendPoints.length-1];
+      const wantUp = buffT>0 ? Math.random()<0.78 : Math.random()<0.22;
+      const mag = 10 + Math.random()*16;
+      let ny = prev.y + (wantUp ? -mag : mag);
+      ny = Math.max(95, Math.min(255, ny));
+      trendNextWx += 30;
+      trendPoints.push({ x:trendNextWx, y:ny, up: ny<prev.y });
+    }
+    while(trendPoints.length>2 && trendPoints[1].x < trendWx-80){ trendPoints.shift(); }
   }
 
   function rectsOverlap(ax,ay,aw,ah,bx,by,bw,bh){
@@ -871,6 +897,7 @@
     ctx.translate(ox,oy);
 
     drawSky();
+    drawTrendLine();
     drawBuildings();
     drawGroundStrip();
 
@@ -901,6 +928,33 @@
       ctx.fillStyle = 'rgba(255,255,255,0.18)';
       ctx.fillRect(0,0,LW,GROUND_Y);
     }
+
+    // faint bear/bull mood wash
+    ctx.fillStyle = buffT>0 ? 'rgba(245,185,66,0.07)' : 'rgba(229,72,77,0.06)';
+    ctx.fillRect(0,0,LW,GROUND_Y);
+  }
+
+  function drawTrendLine(){
+    if(trendPoints.length<2) return;
+    const trendWx = distance*1.35;
+    ctx.save();
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'round';
+    let started = false;
+    for(let i=1;i<trendPoints.length;i++){
+      const a = trendPoints[i-1], b = trendPoints[i];
+      const ax = a.x - trendWx, bx = b.x - trendWx;
+      if(bx < -40 || ax > LW+40) continue;
+      const up = b.up;
+      ctx.strokeStyle = up ? 'rgba(255,216,138,0.5)' : 'rgba(229,72,77,0.42)';
+      ctx.shadowColor = up ? 'rgba(245,185,66,0.55)' : 'rgba(229,72,77,0.3)';
+      ctx.shadowBlur = 7;
+      ctx.beginPath();
+      ctx.moveTo(ax, a.y);
+      ctx.lineTo(bx, b.y);
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
   const buildingsFar = seedBuildings(9, 40, 90, 120);
@@ -1176,7 +1230,7 @@
       ctx.fillStyle = COL.gold;
       ctx.font = "bold 11px 'Gothic A1', sans-serif";
       ctx.textAlign='center';
-      ctx.fillText('🐂 불장 에너지 ' + buffT.toFixed(1)+'s', LW/2, 30);
+      ctx.fillText('🐂 ' + activeBuffLabel + ' ' + buffT.toFixed(1)+'s', LW/2, 30);
       ctx.textAlign='left';
     }
 
