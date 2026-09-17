@@ -2,6 +2,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>샤크런</title>
 <style>
+  @font-face {
+    font-family: 'Mona12TextKR';
+    src: url('fonts/Mona12TextKR.woff2') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Mona12TextKR';
+    src: url('fonts/Mona12TextKR-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-display: swap;
+  }
+
   :root {
     --ink-950: #0A0F1F;
     --ink-900: #10162B;
@@ -38,7 +51,7 @@
     touch-action: manipulation;
     display: flex;
     justify-content: center;
-    font-family: 'Gothic A1', 'Malgun Gothic', sans-serif;
+    font-family: 'Mona12TextKR', 'Malgun Gothic', sans-serif;
   }
 
   .page {
@@ -53,7 +66,7 @@
   }
 
   .eyebrow {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Mona12TextKR', monospace;
     font-size: 10px;
     font-weight: 500;
     letter-spacing: 0.18em;
@@ -63,7 +76,7 @@
   }
 
   h1 {
-    font-family: 'Black Han Sans', sans-serif;
+    font-family: 'Mona12TextKR', sans-serif;
     font-weight: 400;
     font-size: clamp(22px, 6.5dvh, 44px);
     margin: 0;
@@ -187,19 +200,19 @@
     transition: border-color 0.3s, background 0.3s;
   }
   .stage-chip .num {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Mona12TextKR', monospace;
     font-size: 10px;
     color: var(--muted);
     letter-spacing: 0.05em;
   }
   .stage-chip .name {
-    font-family: 'Gothic A1', sans-serif;
+    font-family: 'Mona12TextKR', sans-serif;
     font-weight: 800;
     font-size: 12.5px;
     color: var(--paper);
   }
   .stage-chip .range {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Mona12TextKR', monospace;
     font-size: 10px;
     color: var(--muted);
     font-variant-numeric: tabular-nums;
@@ -217,7 +230,7 @@
     justify-content: center;
     color: var(--muted);
     font-size: 11.5px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Mona12TextKR', monospace;
     flex-wrap: wrap;
     flex: none;
   }
@@ -234,7 +247,7 @@
     color: #4C5578;
     font-size: 10.5px;
     text-align: center;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Mona12TextKR', monospace;
     letter-spacing: 0.03em;
     margin: 0;
     flex: none;
@@ -281,7 +294,7 @@
     width: 100%;
   }
   .end-headline {
-    font-family: 'Black Han Sans', sans-serif;
+    font-family: 'Mona12TextKR', sans-serif;
     font-weight: 400;
     font-size: 20px;
     line-height: 1.42;
@@ -293,7 +306,7 @@
   .end-bubble {
     background: #fff;
     color: #182349;
-    font-family: 'Gothic A1', sans-serif;
+    font-family: 'Mona12TextKR', sans-serif;
     font-weight: 800;
     font-size: 13px;
     padding: 9px 16px;
@@ -331,27 +344,27 @@
     margin-bottom: 10px;
   }
   .end-stats-label {
-    font-family: 'Gothic A1', sans-serif;
+    font-family: 'Mona12TextKR', sans-serif;
     font-weight: 700;
     font-size: 12px;
     color: #B9C4EC;
     letter-spacing: 0.02em;
   }
   .end-stats-value {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Mona12TextKR', monospace;
     font-weight: 700;
     font-size: 33px;
     color: #F5B942;
     font-variant-numeric: tabular-nums;
   }
   .end-stats-sub {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Mona12TextKR', monospace;
     font-size: 11px;
     color: #8FA0D6;
     font-variant-numeric: tabular-nums;
   }
   .end-caption {
-    font-family: 'Gothic A1', sans-serif;
+    font-family: 'Mona12TextKR', sans-serif;
     font-size: 11.5px;
     color: #B9C4EC;
     text-align: center;
@@ -372,13 +385,13 @@
   }
   .end-secret.show { display: flex; }
   .secret-tag {
-    font-family: 'Gothic A1', sans-serif;
+    font-family: 'Mona12TextKR', sans-serif;
     font-size: 13px;
     font-weight: 800;
     color: #fff;
   }
   .secret-list {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Mona12TextKR', monospace;
     font-weight: 700;
     font-size: 17px;
     color: #FFD98A;
@@ -386,7 +399,7 @@
     margin: 5px 0 0;
   }
   .secret-sub {
-    font-family: 'Gothic A1', sans-serif;
+    font-family: 'Mona12TextKR', sans-serif;
     font-weight: 600;
     font-size: 11px;
     line-height: 1.5;
@@ -407,7 +420,7 @@
     padding: 18px 0 17px;
     background: #0A0F1F;
     color: #fff;
-    font-family: 'Gothic A1', sans-serif;
+    font-family: 'Mona12TextKR', sans-serif;
     font-weight: 800;
     font-size: 15px;
     cursor: pointer;
@@ -421,7 +434,7 @@
     padding: 13px 0;
     background: rgba(255,255,255,0.08);
     color: #FFD98A;
-    font-family: 'Gothic A1', sans-serif;
+    font-family: 'Mona12TextKR', sans-serif;
     font-weight: 700;
     font-size: 13px;
     cursor: pointer;
@@ -440,7 +453,7 @@
     transform: translateX(-50%) translateY(12px);
     background: #0A0F1F;
     color: #fff;
-    font-family: 'Gothic A1', sans-serif;
+    font-family: 'Mona12TextKR', sans-serif;
     font-weight: 700;
     font-size: 13px;
     padding: 12px 20px;
@@ -453,8 +466,6 @@
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gothic+A1:wght@400;500;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap">
 
 <div class="page">
   <div class="eyebrow">SHARK ON WALL ST.</div>
@@ -1204,7 +1215,7 @@
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.fillRect(0, GROUND_Y+50, LW, 22);
     const tickerStr = '   ' + STAGES[curStageIdx].tickers.join('     ·     ') + '   ';
-    ctx.font = "11px 'JetBrains Mono', monospace";
+    ctx.font = "11px 'Mona12TextKR', monospace";
     ctx.fillStyle = COL.gold;
     ctx.textBaseline = 'middle';
     const tw = ctx.measureText(tickerStr).width || 300;
@@ -1323,7 +1334,7 @@
       ctx.strokeStyle='#fff'; ctx.lineWidth=3;
       ctx.beginPath(); ctx.arc(o.w/2,o.h*0.2,o.w/2-3,0,Math.PI*2); ctx.stroke();
       ctx.fillStyle='#fff';
-      ctx.font = "bold 13px 'Gothic A1', sans-serif";
+      ctx.font = "bold 13px 'Mona12TextKR', sans-serif";
       ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillText('%↑', o.w/2, o.h*0.22);
       drawTag(o.w/2, -4, o.label, COL.red);
@@ -1333,7 +1344,7 @@
       spikyBlob(o.w/2,o.h*0.55,o.w*0.5,9);
       ctx.fill();
       ctx.fillStyle = '#fff';
-      ctx.font = "bold 10px 'Gothic A1', sans-serif";
+      ctx.font = "bold 10px 'Mona12TextKR', sans-serif";
       ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillText('▼', o.w/2, o.h*0.55);
       drawTag(o.w/2, -4, o.label, COL.red);
@@ -1351,7 +1362,7 @@
     ctx.closePath();
   }
   function drawTag(cx,topY,label,color){
-    ctx.font = "bold 10.5px 'Gothic A1', sans-serif";
+    ctx.font = "bold 10.5px 'Mona12TextKR', sans-serif";
     ctx.textAlign='center';
     const tw = ctx.measureText(label).width+12;
     ctx.fillStyle = 'rgba(6,9,20,0.92)';
@@ -1371,7 +1382,7 @@
       ctx.fillStyle = COL.green;
       ctx.beginPath(); ctx.arc(0,0,it.r,0,Math.PI*2); ctx.fill();
       ctx.fillStyle='#0E3D2E';
-      ctx.font="bold 13px 'JetBrains Mono', monospace";
+      ctx.font="bold 13px 'Mona12TextKR', monospace";
       ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillText('$',0,1);
     } else if(it.type==='buff'){
@@ -1393,17 +1404,17 @@
   function drawHUD(){
     if(state !== 'playing') return;
     ctx.textAlign='left'; ctx.textBaseline='alphabetic';
-    ctx.font = "bold 26px 'JetBrains Mono', monospace";
+    ctx.font = "bold 26px 'Mona12TextKR', monospace";
     ctx.fillStyle = 'rgba(0,0,0,0.4)';
     ctx.fillText(Math.floor(distance)+'m', 17, 43);
     ctx.fillStyle = COL.paper;
     ctx.fillText(Math.floor(distance)+'m', 16, 42);
 
-    ctx.font = "10px 'JetBrains Mono', monospace";
+    ctx.font = "10px 'Mona12TextKR', monospace";
     ctx.fillStyle = COL.gold;
     ctx.fillText(STAGES[curStageIdx].name.toUpperCase(), 16, 58);
 
-    ctx.font = "11px 'JetBrains Mono', monospace";
+    ctx.font = "11px 'Mona12TextKR', monospace";
     ctx.fillStyle = COL.green;
     ctx.fillText(currentWon().toLocaleString()+'원', 16, 74);
 
@@ -1415,7 +1426,7 @@
 
     if(buffT>0){
       ctx.fillStyle = COL.gold;
-      ctx.font = "bold 11px 'Gothic A1', sans-serif";
+      ctx.font = "bold 11px 'Mona12TextKR', sans-serif";
       ctx.textAlign='center';
       ctx.fillText('🐂 ' + activeBuffLabel + ' ' + buffT.toFixed(1)+'s', LW/2, 30);
       ctx.textAlign='left';
@@ -1425,7 +1436,7 @@
       const a = clamp(stageAnnounceT/1.6,0,1);
       ctx.globalAlpha = Math.min(a*2,1);
       ctx.textAlign='center';
-      ctx.font = "22px 'Black Han Sans', sans-serif";
+      ctx.font = "22px 'Mona12TextKR', sans-serif";
       ctx.fillStyle = 'rgba(0,0,0,0.45)';
       ctx.fillText(STAGES[curStageIdx].name, LW/2+2, LH*0.32+2);
       ctx.fillStyle = COL.gold;
@@ -1448,40 +1459,40 @@
 
     ctx.textAlign='center';
     ctx.fillStyle='rgba(0,0,0,0.4)';
-    ctx.font="40px 'Black Han Sans', sans-serif";
+    ctx.font="40px 'Mona12TextKR', sans-serif";
     ctx.fillText('SHARK RUN', LW/2+2, LH*0.28+2);
     ctx.fillStyle=COL.paper;
     ctx.fillText('SHARK RUN', LW/2, LH*0.28);
 
-    ctx.font = "bold 13px 'JetBrains Mono', monospace";
+    ctx.font = "bold 13px 'Mona12TextKR', monospace";
     ctx.fillStyle = COL.muted;
     ctx.fillText('개장까지', LW/2, LH*0.28+34);
-    ctx.font = "bold 30px 'JetBrains Mono', monospace";
+    ctx.font = "bold 30px 'Mona12TextKR', monospace";
     ctx.fillStyle = preOpenT<60 ? COL.red : COL.gold;
     ctx.fillText(fmtClock(preOpenT), LW/2, LH*0.28+70);
 
     if(challengeWon){
-      ctx.font = "bold 16px 'Gothic A1', sans-serif";
+      ctx.font = "bold 16px 'Mona12TextKR', sans-serif";
       ctx.fillStyle = COL.gold2;
       ctx.fillText('🦈 '+challengerName+'님의 도전장 도착!', LW/2, LH*0.28+108);
     } else {
-      ctx.font = "20px 'Black Han Sans', sans-serif";
+      ctx.font = "20px 'Mona12TextKR', sans-serif";
       ctx.fillStyle = '#fff';
       ctx.fillText('월가로 달려라!', LW/2, LH*0.28+108);
     }
 
     panel(28,LH*0.28+130,LW-56,LH*0.24);
-    ctx.font="12px 'Gothic A1', sans-serif";
+    ctx.font="12px 'Mona12TextKR', sans-serif";
     ctx.fillStyle=COL.paper;
     ctx.fillText('탭 1번=숏점프  ·  빠르게 2번=롱점프', LW/2, LH*0.28+130+30);
-    ctx.font="11px 'JetBrains Mono', monospace";
+    ctx.font="11px 'Mona12TextKR', monospace";
     ctx.fillStyle = COL.muted;
     ctx.fillText(challengeWon ? ('목표: '+challengeWon.toLocaleString()+'원 돌파') : ('최고 기록  '+Math.floor(best)+'m'), LW/2, LH*0.28+130+56);
 
     ctx.fillStyle = COL.gold;
     roundRect(LW/2-74, LH*0.28+130+78, 148, 42, 21); ctx.fill();
     ctx.fillStyle = '#241505';
-    ctx.font="bold 14px 'Gothic A1', sans-serif";
+    ctx.font="bold 14px 'Mona12TextKR', sans-serif";
     ctx.fillText('출근 시작', LW/2, LH*0.28+130+104);
     ctx.textAlign='left';
   }
