@@ -358,10 +358,49 @@
     margin: 0 0 16px;
   }
   .end-caption b { color: #FFD98A; }
-  .end-cta {
+  .end-secret {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    border: 1px solid rgba(245,185,66,0.5);
+    background: rgba(245,185,66,0.1);
+    border-radius: 12px;
+    padding: 10px 12px 12px;
+    margin: 0 0 14px;
+    text-align: center;
+  }
+  .end-secret.show { display: flex; }
+  .secret-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: #FFD98A;
+    letter-spacing: 0.03em;
+  }
+  .secret-title {
+    font-family: 'Gothic A1', sans-serif;
+    font-weight: 800;
+    font-size: 12.5px;
+    color: #fff;
+    margin: 4px 0 2px;
+  }
+  .secret-list {
+    font-family: 'Gothic A1', sans-serif;
+    font-weight: 700;
+    font-size: 13.5px;
+    color: #FFD98A;
+    margin: 0;
+  }
+  .end-actions {
     margin-top: auto;
     width: calc(100% + 44px);
     margin-inline: -22px;
+    display: flex;
+    flex-direction: column;
+  }
+  .end-cta {
+    width: 100%;
     border: none;
     padding: 18px 0 17px;
     background: #0A0F1F;
@@ -373,10 +412,44 @@
   }
   .end-cta:active { background: #060911; }
   .end-cta:focus-visible { outline: 2px solid var(--bull-gold); outline-offset: -3px; }
+  .end-share-btn {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 13px 0;
+    background: rgba(255,255,255,0.08);
+    color: #FFD98A;
+    font-family: 'Gothic A1', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .end-share-btn:active { background: rgba(255,255,255,0.14); }
+  .end-share-btn:focus-visible { outline: 2px solid var(--bull-gold); outline-offset: -3px; }
 
   @media (prefers-reduced-motion: reduce) {
     * { animation-duration: 0.01ms !important; }
   }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 32px;
+    transform: translateX(-50%) translateY(12px);
+    background: #0A0F1F;
+    color: #fff;
+    font-family: 'Gothic A1', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 12px 20px;
+    border-radius: 999px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 50;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gothic+A1:wght@400;500;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap">
@@ -396,7 +469,7 @@
       <div class="end-screen" id="endScreen" aria-hidden="true">
         <div class="end-decor"></div>
         <div class="end-content">
-          <p class="end-headline">폭락장을 뚫고<br>월가 코앞까지 왔다네</p>
+          <p class="end-headline" id="endHeadline">폭락장을 뚫고<br>월가 코앞까지 왔다네</p>
           <div class="end-bubble" id="endBubble">거의 다 왔어, 초스!</div>
           <svg class="end-shark" viewBox="0 0 200 210" aria-hidden="true">
             <rect x="66" y="168" width="16" height="26" rx="7" fill="#5E7396"/>
@@ -417,9 +490,17 @@
             <span class="end-stats-value" id="endWon">0원</span>
             <span class="end-stats-sub" id="endDistance">0m · 프리마켓</span>
           </div>
-          <p class="end-caption">10,000원까지 모이면 <b>월가의 황소</b> 뱃지를 드려요</p>
+          <p class="end-caption" id="endCaption">10,000원까지 모이면 <b>월가의 황소</b> 뱃지를 드려요</p>
+          <div class="end-secret" id="endSecret">
+            <span class="secret-tag">🔓 오늘만 공개</span>
+            <p class="secret-title">초스 상어의 관심종목 TOP 3</p>
+            <p class="secret-list" id="secretList"></p>
+          </div>
         </div>
-        <button class="end-cta" id="endRetryBtn">다시 출근하기</button>
+        <div class="end-actions">
+          <button class="end-share-btn" id="endShareBtn">🦈 친구에게 도전장 보내기</button>
+          <button class="end-cta" id="endRetryBtn">다시 출근하기</button>
+        </div>
       </div>
     </div>
   </div>
@@ -450,6 +531,8 @@
 
   <p class="credit">CHARGING SHARK CO. — 가상 수익금 최대 10,000원</p>
 </div>
+
+<div class="toast" id="toast"></div>
 
 <script>
 (function(){
@@ -531,6 +614,9 @@
   const BEAR_AERIAL = '블랙먼데이';                                // a single brutal day — the aerial dive-bomb
   const BULL_RALLIES = ['레이건랠리','닷컴붐','원자재랠리','최장기불장','유동성파티','AI랠리'];
 
+  // 10,000원(최대 수익금) 달성자에게만 공개되는 오늘의 관심종목 — 직접 갱신
+  const TOP3_TICKERS = ['AMD', 'TSMC', '아스테라랩스'];
+
   // ---------- Stage config ----------
   const STAGES = [
     { key:'premarket', name:'프리마켓', from:0, to:150, mult:1.0, spawnMin:78, spawnMax:112, sky:['dawnTop','dawnMid','dawnBot'],
@@ -571,6 +657,50 @@
   let best = 0;
   try { best = parseFloat(localStorage.getItem('sharkRunBest')||'0') || 0; } catch(e){}
 
+  // ---------- Friend challenge (via share link, no backend) ----------
+  const urlParams = new URLSearchParams(location.search);
+  let challengeWon = parseInt(urlParams.get('c'), 10);
+  if(!Number.isFinite(challengeWon) || challengeWon <= 0) challengeWon = null;
+  let challengerName = (urlParams.get('n') || '').trim().slice(0, 10) || null;
+  if(challengeWon && !challengerName) challengerName = '친구';
+
+  const toastEl = document.getElementById('toast');
+  let toastT = null;
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastT);
+    toastT = setTimeout(()=> toastEl.classList.remove('show'), 2200);
+  }
+
+  function shareChallenge(){
+    const won = currentWon();
+    let name = '';
+    try { name = (localStorage.getItem('sharkRunNick') || '').trim(); } catch(e){}
+    if(!name){
+      try {
+        name = (prompt('닉네임을 입력해주세요 (친구에게 보일 이름)', '초스') || '').trim().slice(0, 10);
+        if(name){ localStorage.setItem('sharkRunNick', name); }
+      } catch(e){}
+    }
+    if(!name) name = '초스';
+    const url = new URL(location.href);
+    url.search = '';
+    url.searchParams.set('c', String(won));
+    url.searchParams.set('n', name);
+    const shareText = name + '님이 ' + won.toLocaleString() + '원 기록에 도전장을 던졌어요! 넘을 수 있어?';
+    if(navigator.share){
+      navigator.share({ title:'샤크런 도전장', text: shareText, url: url.toString() }).catch(()=>{});
+      return;
+    }
+    const full = shareText + '\n' + url.toString();
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(full).then(()=>{
+        toast('도전장 링크가 복사됐어요!');
+      }).catch(()=>{ toast('링크 복사에 실패했어요'); });
+    }
+  }
+
   let player, obstacles, items, particles, distance, elapsed, spawnTimer, nextSpawnGap,
       hearts, invulnT, buffT, activeBuffLabel, shakeT, shakeMag, coinsCollected, tickerX, curStageIdx, stageAnnounceT, preOpenT,
       trendPoints, trendNextWx;
@@ -605,16 +735,37 @@
   const endDistanceEl = document.getElementById('endDistance');
   const endBubbleEl = document.getElementById('endBubble');
   const endRetryBtn = document.getElementById('endRetryBtn');
+  const endShareBtn = document.getElementById('endShareBtn');
+  const endHeadlineEl = document.getElementById('endHeadline');
+  const endCaptionEl = document.getElementById('endCaption');
+  const endSecretEl = document.getElementById('endSecret');
+  const secretListEl = document.getElementById('secretList');
   const bubbleLines = ['거의 다 왔어, 초스!','월가가 코앞이야!','조금만 더 힘내자!','불장이 기다리고 있어!'];
 
   function currentWon(){
     return Math.min(coinsCollected*120 + Math.floor(distance)*6, 10000);
   }
   function showEndScreen(){
-    endWonEl.textContent = currentWon().toLocaleString()+'원';
+    const won = currentWon();
+    endWonEl.textContent = won.toLocaleString()+'원';
     const record = distance >= best-0.5;
     endDistanceEl.textContent = Math.floor(distance)+'m · '+STAGES[curStageIdx].name + (record?' · 🏆 신기록':'');
-    endBubbleEl.textContent = bubbleLines[Math.floor(Math.random()*bubbleLines.length)];
+    if(challengeWon){
+      const beat = won > challengeWon;
+      endHeadlineEl.innerHTML = beat ? '도전장을 씹어먹었다!<br>기록 경신!' : '아깝다, 코앞에서<br>놓쳤다!';
+      endBubbleEl.textContent = beat ? '내가 이겼다, 초스!' : '다시 도전해볼까?';
+      endCaptionEl.innerHTML = challengerName+'님의 목표는 <b>'+challengeWon.toLocaleString()+'원</b>이었어요';
+    } else {
+      endHeadlineEl.innerHTML = '폭락장을 뚫고<br>월가 코앞까지 왔다네';
+      endBubbleEl.textContent = bubbleLines[Math.floor(Math.random()*bubbleLines.length)];
+      endCaptionEl.innerHTML = '10,000원까지 모이면 <b>월가의 황소</b> 뱃지를 드려요';
+    }
+    if(won >= 10000){
+      secretListEl.textContent = TOP3_TICKERS.join('  ·  ');
+      endSecretEl.classList.add('show');
+    } else {
+      endSecretEl.classList.remove('show');
+    }
     endScreen.classList.add('show');
     endScreen.setAttribute('aria-hidden','false');
   }
@@ -628,6 +779,7 @@
     state = 'playing';
   }
   endRetryBtn.addEventListener('click', retry);
+  endShareBtn.addEventListener('click', shareChallenge);
 
   // ---------- Input (tap = short jump, quick 2nd tap mid-air = long jump) ----------
   function pressStart(){
@@ -1276,9 +1428,15 @@
     ctx.fillStyle = preOpenT<60 ? COL.red : COL.gold;
     ctx.fillText(fmtClock(preOpenT), LW/2, LH*0.28+70);
 
-    ctx.font = "20px 'Black Han Sans', sans-serif";
-    ctx.fillStyle = '#fff';
-    ctx.fillText('월가로 달려라!', LW/2, LH*0.28+108);
+    if(challengeWon){
+      ctx.font = "bold 16px 'Gothic A1', sans-serif";
+      ctx.fillStyle = COL.gold2;
+      ctx.fillText('🦈 '+challengerName+'님의 도전장 도착!', LW/2, LH*0.28+108);
+    } else {
+      ctx.font = "20px 'Black Han Sans', sans-serif";
+      ctx.fillStyle = '#fff';
+      ctx.fillText('월가로 달려라!', LW/2, LH*0.28+108);
+    }
 
     panel(28,LH*0.28+130,LW-56,LH*0.24);
     ctx.font="12px 'Gothic A1', sans-serif";
@@ -1286,7 +1444,7 @@
     ctx.fillText('탭 1번=숏점프  ·  빠르게 2번=롱점프', LW/2, LH*0.28+130+30);
     ctx.font="11px 'JetBrains Mono', monospace";
     ctx.fillStyle = COL.muted;
-    ctx.fillText('최고 기록  '+Math.floor(best)+'m', LW/2, LH*0.28+130+56);
+    ctx.fillText(challengeWon ? ('목표: '+challengeWon.toLocaleString()+'원 돌파') : ('최고 기록  '+Math.floor(best)+'m'), LW/2, LH*0.28+130+56);
 
     ctx.fillStyle = COL.gold;
     roundRect(LW/2-74, LH*0.28+130+78, 148, 42, 21); ctx.fill();
