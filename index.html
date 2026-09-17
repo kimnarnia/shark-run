@@ -627,9 +627,21 @@
   });
 
   // ---------- Historical bear/bull market labels ----------
-  const BEAR_TALL = ['대공황','오일쇼크','닷컴버블','금융위기'];   // -48% ~ -86% drawdowns — the tall, long-jump-only obstacle
-  const BEAR_SHORT = ['코로나쇼크','긴축장'];                     // -25% ~ -34% — the low, single-tap obstacle
-  const BEAR_AERIAL = '블랙먼데이';                                // a single brutal day — the aerial dive-bomb
+  // each entry pairs a label with a distinct icon key so obstacles look different, not just named differently
+  const BEAR_TALL = [                                              // -48% ~ -86% drawdowns — the tall, long-jump-only obstacle
+    {label:'대공황', icon:'crash'},
+    {label:'오일쇼크', icon:'oil'},
+    {label:'닷컴버블', icon:'bubble'},
+    {label:'금융위기', icon:'bank'},
+  ];
+  const BEAR_SHORT = [                                             // -25% ~ -34% — the low, single-tap obstacle
+    {label:'코로나쇼크', icon:'virus'},
+    {label:'긴축장', icon:'vice'},
+  ];
+  const BEAR_AERIAL = [                                            // a single brutal day — the aerial dive-bomb
+    {label:'블랙먼데이', icon:'bat'},
+    {label:'블랙먼데이', icon:'meteor'},
+  ];
   const BULL_RALLIES = ['레이건랠리','닷컴붐','원자재랠리','최장기불장','유동성파티','AI랠리'];
 
   // 오늘의 관심종목 — 직접 갱신 (5,000원=TOP3 공개, 10,000원=진짜 1등 공개)
@@ -865,12 +877,13 @@
       earnings: { w:46, h:42, labels:BEAR_SHORT }  // low — a short tap clears it
     };
     const s = specs[kind];
-    const label = s.labels[Math.floor(Math.random()*s.labels.length)];
-    obstacles.push({ type:kind, aerial:false, x: LW + xOffset, y: GROUND_Y - s.h, w:s.w, h:s.h, label, hit:false });
+    const pick = s.labels[Math.floor(Math.random()*s.labels.length)];
+    obstacles.push({ type:kind, aerial:false, x: LW + xOffset, y: GROUND_Y - s.h, w:s.w, h:s.h, label:pick.label, icon:pick.icon, hit:false });
   }
   function spawnAerialObstacle(xOffset){
     // flies low enough that a short hop passes under it — only a long jump collides
-    obstacles.push({ type:'short', aerial:true, x: LW + xOffset, y: 265, w:58, h:80, label:BEAR_AERIAL, hit:false });
+    const pick = BEAR_AERIAL[Math.floor(Math.random()*BEAR_AERIAL.length)];
+    obstacles.push({ type:'short', aerial:true, x: LW + xOffset, y: 265, w:58, h:80, label:pick.label, icon:pick.icon, hit:false });
   }
   function spawnDollarArc(xOffset, count, baseY){
     for(let i=0;i<count;i++){
@@ -1331,41 +1344,118 @@
     if(o.aerial){
       const bob = Math.sin(elapsed*8 + o.x*0.05)*4;
       ctx.translate(o.x, o.y+bob);
-      ctx.fillStyle = '#2A1420';
-      ctx.beginPath();
-      ctx.ellipse(o.w/2, o.h/2, o.w/2, o.h/2.6, 0,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle = COL.red;
-      ctx.beginPath(); ctx.moveTo(0,o.h*0.35); ctx.lineTo(-16,o.h*0.1); ctx.lineTo(2,o.h*0.5); ctx.closePath(); ctx.fill();
-      ctx.beginPath(); ctx.moveTo(o.w,o.h*0.35); ctx.lineTo(o.w+16,o.h*0.1); ctx.lineTo(o.w-2,o.h*0.5); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#FF5A5A';
-      ctx.beginPath(); ctx.arc(o.w*0.38,o.h*0.42,2.6,0,Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(o.w*0.6,o.h*0.42,2.6,0,Math.PI*2); ctx.fill();
+      if(o.icon==='meteor') drawAerialMeteor(o.w,o.h);
+      else drawAerialBat(o.w,o.h);
       drawTag(o.w/2, -6, o.label, COL.red);
     } else if(o.type==='rate'){
       ctx.translate(o.x,o.y);
+      // common signpost base, distinct crest per icon
       ctx.fillStyle = '#5A5E70';
-      ctx.fillRect(o.w/2-3, o.h*0.35, 6, o.h*0.65);
-      ctx.fillStyle = COL.red;
-      ctx.beginPath(); ctx.arc(o.w/2,o.h*0.2,o.w/2,0,Math.PI*2); ctx.fill();
-      ctx.strokeStyle='#fff'; ctx.lineWidth=3;
-      ctx.beginPath(); ctx.arc(o.w/2,o.h*0.2,o.w/2-3,0,Math.PI*2); ctx.stroke();
-      ctx.fillStyle='#fff';
-      ctx.font = "bold 13px 'Mona12TextKR', sans-serif";
-      ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText('%↑', o.w/2, o.h*0.22);
+      ctx.fillRect(o.w/2-3, o.h*0.42, 6, o.h*0.58);
+      if(o.icon==='oil') drawTallOil(o.w,o.h);
+      else if(o.icon==='bubble') drawTallBubble(o.w,o.h);
+      else if(o.icon==='bank') drawTallBank(o.w,o.h);
+      else drawTallCrash(o.w,o.h);
       drawTag(o.w/2, -4, o.label, COL.red);
     } else if(o.type==='earnings'){
       ctx.translate(o.x,o.y);
-      ctx.fillStyle = COL.red;
-      spikyBlob(o.w/2,o.h*0.55,o.w*0.5,9);
-      ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.font = "bold 10px 'Mona12TextKR', sans-serif";
-      ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText('▼', o.w/2, o.h*0.55);
+      if(o.icon==='vice') drawShortVice(o.w,o.h);
+      else drawShortVirus(o.w,o.h);
       drawTag(o.w/2, -4, o.label, COL.red);
     }
     ctx.restore();
+  }
+  // ---- tall obstacle crests (drawn above the shared signpost base) ----
+  function drawTallCrash(w,h){ // 대공황 — a plunging red chart badge
+    ctx.fillStyle = '#2A1420';
+    ctx.beginPath(); ctx.arc(w/2,h*0.22,w/2,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle = COL.red; ctx.lineWidth = 2.5; ctx.lineCap='round'; ctx.lineJoin='round';
+    ctx.beginPath();
+    ctx.moveTo(w*0.22,h*0.1); ctx.lineTo(w*0.4,h*0.18); ctx.lineTo(w*0.32,h*0.26);
+    ctx.lineTo(w*0.62,h*0.24); ctx.lineTo(w*0.5,h*0.4);
+    ctx.stroke();
+  }
+  function drawTallOil(w,h){ // 오일쇼크 — a leaking oil barrel
+    const bx = w/2-13, by = h*0.05, bw = 26, bh = h*0.37;
+    ctx.fillStyle = '#221B14';
+    roundRect(bx,by,bw,bh,5); ctx.fill();
+    ctx.fillStyle = COL.red;
+    ctx.fillRect(bx, by+bh*0.28, bw, 4);
+    ctx.fillRect(bx, by+bh*0.66, bw, 4);
+    ctx.fillStyle = COL.red;
+    ctx.beginPath();
+    ctx.moveTo(w/2, by-14); ctx.quadraticCurveTo(w/2+7, by-4, w/2, by+2); ctx.quadraticCurveTo(w/2-7, by-4, w/2, by-14);
+    ctx.fill();
+  }
+  function drawTallBubble(w,h){ // 닷컴버블 — a cracked, bursting glass bubble
+    const cx=w/2, cy=h*0.22, r=w/2;
+    ctx.fillStyle = 'rgba(229,72,77,0.22)';
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle = COL.red; ctx.lineWidth = 2; ctx.stroke();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4; ctx.lineCap='round';
+    ctx.beginPath();
+    ctx.moveTo(cx,cy-r*0.8); ctx.lineTo(cx-3,cy-2); ctx.lineTo(cx+6,cy+2); ctx.lineTo(cx-2,cy+r*0.7);
+    ctx.stroke();
+    ctx.fillStyle = COL.red;
+    ctx.beginPath(); ctx.arc(cx+r*0.75,cy-r*0.65,3,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx+r*0.95,cy-r*0.3,2,0,Math.PI*2); ctx.fill();
+  }
+  function drawTallBank(w,h){ // 금융위기 — a cracked stone column
+    const capW=30, shaftW=20;
+    ctx.fillStyle = '#B7BFD6';
+    roundRect(w/2-capW/2, h*0.05, capW, 8, 2); ctx.fill();
+    roundRect(w/2-shaftW/2, h*0.13, shaftW, h*0.29, 2); ctx.fill();
+    ctx.strokeStyle = '#8892B0'; ctx.lineWidth = 1;
+    for(let i=1;i<4;i++){
+      const lx = w/2-shaftW/2 + (shaftW/4)*i;
+      ctx.beginPath(); ctx.moveTo(lx,h*0.13); ctx.lineTo(lx,h*0.42); ctx.stroke();
+    }
+    ctx.strokeStyle = COL.red; ctx.lineWidth = 2.2; ctx.lineCap='round';
+    ctx.beginPath();
+    ctx.moveTo(w/2-6,h*0.08); ctx.lineTo(w/2+3,h*0.22); ctx.lineTo(w/2-4,h*0.32); ctx.lineTo(w/2+5,h*0.42);
+    ctx.stroke();
+  }
+  // ---- short obstacle bodies ----
+  function drawShortVirus(w,h){ // 코로나쇼크 — a spiky red virus blob
+    ctx.fillStyle = COL.red;
+    spikyBlob(w/2,h*0.55,w*0.5,9);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = "bold 10px 'Mona12TextKR', sans-serif";
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('▼', w/2, h*0.55);
+  }
+  function drawShortVice(w,h){ // 긴축장 — a vice squeezing shut
+    ctx.fillStyle = '#5A5E70';
+    roundRect(0, h*0.15, w*0.36, h*0.72, 3); ctx.fill();
+    roundRect(w*0.64, h*0.15, w*0.36, h*0.72, 3); ctx.fill();
+    ctx.fillStyle = COL.red;
+    ctx.beginPath();
+    ctx.moveTo(w*0.4,h*0.3); ctx.lineTo(w*0.55,h*0.48); ctx.lineTo(w*0.44,h*0.5); ctx.lineTo(w*0.6,h*0.75);
+    ctx.lineTo(w*0.46,h*0.56); ctx.lineTo(w*0.56,h*0.54); ctx.closePath(); ctx.fill();
+  }
+  // ---- aerial obstacle bodies ----
+  function drawAerialBat(w,h){ // 블랙먼데이 — a diving bat
+    ctx.fillStyle = '#2A1420';
+    ctx.beginPath();
+    ctx.ellipse(w/2, h/2, w/2, h/2.6, 0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = COL.red;
+    ctx.beginPath(); ctx.moveTo(0,h*0.35); ctx.lineTo(-16,h*0.1); ctx.lineTo(2,h*0.5); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(w,h*0.35); ctx.lineTo(w+16,h*0.1); ctx.lineTo(w-2,h*0.5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#FF5A5A';
+    ctx.beginPath(); ctx.arc(w*0.38,h*0.42,2.6,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(w*0.6,h*0.42,2.6,0,Math.PI*2); ctx.fill();
+  }
+  function drawAerialMeteor(w,h){ // 블랙먼데이 — a falling meteor with a flame trail
+    const cx=w*0.36, cy=h*0.42, r=14;
+    ctx.fillStyle = COL.gold;
+    ctx.beginPath(); ctx.moveTo(cx+r*0.6,cy); ctx.lineTo(w*0.95,cy-r*0.9); ctx.lineTo(w*0.7,cy+r*0.2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = COL.red;
+    ctx.beginPath(); ctx.moveTo(cx+r*0.5,cy+r*0.2); ctx.lineTo(w*1.05,cy+r*0.6); ctx.lineTo(w*0.65,cy+r*0.7); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#2A1420';
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#FF5A5A';
+    ctx.beginPath(); ctx.arc(cx-3,cy-3,3.4,0,Math.PI*2); ctx.fill();
   }
   function spikyBlob(cx,cy,r,spikes){
     ctx.beginPath();
