@@ -471,7 +471,7 @@
 
   // ---------- Palette ----------
   const COL = {
-    dawnTop:'#3B2A6B', dawnMid:'#8A4E8F', dawnBot:'#FF8B6B',
+    dawnTop:'#4E8FE0', dawnMid:'#8FC7EF', dawnBot:'#FFE7B0',
     dayTop:'#2E56C9', dayMid:'#4C7EFF', dayBot:'#9FC4FF',
     stormTop:'#1A1024', stormMid:'#3D1620', stormBot:'#7A2430',
     groundTop:'#3A3F55', groundFace:'#2A2E40', groundLine:'#4A5070',
@@ -1167,14 +1167,17 @@
     ctx.closePath();
   }
   function drawTag(cx,topY,label,color){
-    ctx.font = "9px 'Gothic A1', sans-serif";
+    ctx.font = "bold 10.5px 'Gothic A1', sans-serif";
     ctx.textAlign='center';
-    const tw = ctx.measureText(label).width+8;
-    ctx.fillStyle = 'rgba(10,15,31,0.75)';
-    roundRect(cx-tw/2, topY-12, tw, 13, 4); ctx.fill();
+    const tw = ctx.measureText(label).width+12;
+    ctx.fillStyle = 'rgba(6,9,20,0.92)';
+    roundRect(cx-tw/2, topY-15, tw, 16, 5); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 1;
+    roundRect(cx-tw/2, topY-15, tw, 16, 5); ctx.stroke();
     ctx.fillStyle = '#fff';
     ctx.textBaseline='middle';
-    ctx.fillText(label, cx, topY-5.5);
+    ctx.fillText(label, cx, topY-7);
   }
 
   function drawItem(it){
