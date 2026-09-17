@@ -372,26 +372,28 @@
   }
   .end-secret.show { display: flex; }
   .secret-tag {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    font-weight: 700;
-    color: #FFD98A;
-    letter-spacing: 0.03em;
-  }
-  .secret-title {
     font-family: 'Gothic A1', sans-serif;
+    font-size: 13px;
     font-weight: 800;
-    font-size: 12.5px;
     color: #fff;
-    margin: 4px 0 2px;
   }
   .secret-list {
-    font-family: 'Gothic A1', sans-serif;
+    font-family: 'JetBrains Mono', monospace;
     font-weight: 700;
-    font-size: 13.5px;
+    font-size: 17px;
     color: #FFD98A;
-    margin: 0;
+    letter-spacing: 0.02em;
+    margin: 5px 0 0;
   }
+  .secret-sub {
+    font-family: 'Gothic A1', sans-serif;
+    font-weight: 600;
+    font-size: 11px;
+    line-height: 1.5;
+    color: #B9C4EC;
+    margin: 6px 0 0;
+  }
+  .secret-sub b { color: #FFD98A; }
   .end-actions {
     margin-top: auto;
     width: calc(100% + 44px);
@@ -492,9 +494,9 @@
           </div>
           <p class="end-caption" id="endCaption">10,000원까지 모이면 <b>월가의 황소</b> 뱃지를 드려요</p>
           <div class="end-secret" id="endSecret">
-            <span class="secret-tag">🔓 오늘만 공개</span>
-            <p class="secret-title">초스 상어의 관심종목 TOP 3</p>
+            <span class="secret-tag" id="secretTag">🎉 TOP 3 공개!</span>
             <p class="secret-list" id="secretList"></p>
+            <p class="secret-sub" id="secretSub"></p>
           </div>
         </div>
         <div class="end-actions">
@@ -614,8 +616,11 @@
   const BEAR_AERIAL = '블랙먼데이';                                // a single brutal day — the aerial dive-bomb
   const BULL_RALLIES = ['레이건랠리','닷컴붐','원자재랠리','최장기불장','유동성파티','AI랠리'];
 
-  // 10,000원(최대 수익금) 달성자에게만 공개되는 오늘의 관심종목 — 직접 갱신
-  const TOP3_TICKERS = ['AMD', 'TSMC', '아스테라랩스'];
+  // 오늘의 관심종목 — 직접 갱신 (5,000원=TOP3 공개, 10,000원=진짜 1등 공개)
+  const TOP3_TICKERS = ['NVDA', 'AVGO', 'AMZN'];
+  const TOP1_TICKER = 'NVDA';
+  const TOP3_GOAL = 5000;
+  const TOP1_GOAL = 10000;
 
   // ---------- Stage config ----------
   const STAGES = [
@@ -739,7 +744,9 @@
   const endHeadlineEl = document.getElementById('endHeadline');
   const endCaptionEl = document.getElementById('endCaption');
   const endSecretEl = document.getElementById('endSecret');
+  const secretTagEl = document.getElementById('secretTag');
   const secretListEl = document.getElementById('secretList');
+  const secretSubEl = document.getElementById('secretSub');
   const bubbleLines = ['거의 다 왔어, 초스!','월가가 코앞이야!','조금만 더 힘내자!','불장이 기다리고 있어!'];
 
   function currentWon(){
@@ -758,10 +765,21 @@
     } else {
       endHeadlineEl.innerHTML = '폭락장을 뚫고<br>월가 코앞까지 왔다네';
       endBubbleEl.textContent = bubbleLines[Math.floor(Math.random()*bubbleLines.length)];
-      endCaptionEl.innerHTML = '10,000원까지 모이면 <b>월가의 황소</b> 뱃지를 드려요';
+      if(won < TOP3_GOAL){
+        endCaptionEl.innerHTML = (TOP3_GOAL-won).toLocaleString()+'원만 더 모으면 <b>🦈 오늘의 관심종목 TOP 3</b> 공개';
+      } else {
+        endCaptionEl.innerHTML = '';
+      }
     }
-    if(won >= 10000){
+    if(won >= TOP1_GOAL){
+      secretTagEl.textContent = '🦈 오늘의 1등 관심종목 공개';
+      secretListEl.textContent = TOP1_TICKER;
+      secretSubEl.innerHTML = '오늘 초스 상어가 주목하는 종목입니다.<br>내일 새로운 TOP 3가 공개됩니다 — 내일 다시 도전해보세요!';
+      endSecretEl.classList.add('show');
+    } else if(won >= TOP3_GOAL){
+      secretTagEl.textContent = '🎉 TOP 3 공개!';
       secretListEl.textContent = TOP3_TICKERS.join('  ·  ');
+      secretSubEl.innerHTML = '그런데… 👀 <b>진짜 1등 종목은?</b><br>10,000원 달성 시 공개';
       endSecretEl.classList.add('show');
     } else {
       endSecretEl.classList.remove('show');
