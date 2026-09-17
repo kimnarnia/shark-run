@@ -689,17 +689,26 @@
     toastT = setTimeout(()=> toastEl.classList.remove('show'), 2200);
   }
 
-  function shareChallenge(){
-    const won = currentWon();
+  const NICK_PREFIXES = ['번개','황금','불꽃','전설의','새벽','질주하는','무자비한','냉정한','폭풍','은밀한'];
+  const NICK_SUFFIXES = ['초스','상어','트레이더','불장러','매수왕','직진러'];
+  function randomNick(){
+    const p = NICK_PREFIXES[Math.floor(Math.random()*NICK_PREFIXES.length)];
+    const s = NICK_SUFFIXES[Math.floor(Math.random()*NICK_SUFFIXES.length)];
+    return p + s;
+  }
+  function myNick(){
     let name = '';
     try { name = (localStorage.getItem('sharkRunNick') || '').trim(); } catch(e){}
     if(!name){
-      try {
-        name = (prompt('닉네임을 입력해주세요 (친구에게 보일 이름)', '초스') || '').trim().slice(0, 10);
-        if(name){ localStorage.setItem('sharkRunNick', name); }
-      } catch(e){}
+      name = randomNick();
+      try { localStorage.setItem('sharkRunNick', name); } catch(e){}
     }
-    if(!name) name = '초스';
+    return name;
+  }
+
+  function shareChallenge(){
+    const won = currentWon();
+    const name = myNick();
     const url = new URL(location.href);
     url.search = '';
     url.searchParams.set('c', String(won));
@@ -712,8 +721,10 @@
     const full = shareText + '\n' + url.toString();
     if(navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(full).then(()=>{
-        toast('도전장 링크가 복사됐어요!');
+        toast('🦈 닉네임 '+name+' · 도전장 링크가 복사됐어요!');
       }).catch(()=>{ toast('링크 복사에 실패했어요'); });
+    } else {
+      toast('링크 복사가 지원되지 않는 브라우저예요');
     }
   }
 
