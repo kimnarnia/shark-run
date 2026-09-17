@@ -1215,12 +1215,26 @@
     }
   }
 
+  function buffScale(){
+    if(buffT<=0) return 1;
+    const total = 5, growIn = 0.22, shrinkOut = 0.35, maxGrow = 0.32;
+    const elapsedSince = total - buffT;
+    let t = 1;
+    if(elapsedSince < growIn) t = elapsedSince/growIn;
+    else if(buffT < shrinkOut) t = buffT/shrinkOut;
+    return 1 + maxGrow * clamp(t,0,1);
+  }
+
   function drawShark(){
     const flashHidden = invulnT>0 && Math.floor(invulnT*14)%2===0;
     if(flashHidden) return;
 
     const {x,y,w,h} = player;
     ctx.save();
+    const scale = buffScale();
+    ctx.translate(x+w/2, y+h);
+    ctx.scale(scale, scale);
+    ctx.translate(-(x+w/2), -(y+h));
     ctx.translate(x+w/2, y+h/2);
 
     if(buffT>0){
