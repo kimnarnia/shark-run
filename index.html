@@ -664,10 +664,9 @@
   ];
   const COIN_ICONS = ['coin','won','bill'];                        // dollar-arc pickup icons — one style per spawned arc
 
-  // 오늘의 관심종목 — 직접 갱신 (5,000원 달성 시 TOP3 공개)
+  // 오늘의 관심종목 — 직접 갱신 (10,000원 달성 시 TOP3 공개, 같은 지점에서 출근 연출도 트리거)
   const TOP3_TICKERS = ['NVDA', 'AVGO', 'AMZN'];
-  const TOP3_GOAL = 5000;
-  const WON_CAP = 10000; // currentWon()'s ceiling — also where the arrival cutscene triggers
+  const WON_CAP = 10000; // currentWon()'s ceiling, the TOP3 reveal goal, and the arrival cutscene trigger — all the same number now
 
   // ---------- Stage config ----------
   const STAGES = [
@@ -834,13 +833,13 @@
     } else {
       endHeadlineEl.innerHTML = '폭락장을 뚫고<br>월가 코앞까지 왔다네';
       endBubbleEl.textContent = bubbleLines[Math.floor(Math.random()*bubbleLines.length)];
-      if(won < TOP3_GOAL){
-        endCaptionEl.innerHTML = (TOP3_GOAL-won).toLocaleString()+'원만 더 모으면 <b>🦈 오늘의 관심종목 TOP 3</b> 공개';
+      if(won < WON_CAP){
+        endCaptionEl.innerHTML = (WON_CAP-won).toLocaleString()+'원만 더 모으면 <b>🦈 오늘의 관심종목 TOP 3</b> 공개';
       } else {
         endCaptionEl.innerHTML = '';
       }
     }
-    if(won >= TOP3_GOAL){
+    if(won >= WON_CAP){
       secretTagEl.textContent = '🎉 TOP 3 공개!';
       secretListEl.textContent = TOP3_TICKERS.join('  ·  ');
       secretSubEl.innerHTML = '오늘 초스 상어가 주목하는 종목입니다.<br>내일 새로운 TOP 3가 공개됩니다 — 내일 다시 도전해보세요!';
