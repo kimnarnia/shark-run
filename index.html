@@ -196,50 +196,6 @@
   }
   .sound-toggle:focus-visible { outline: 2px solid var(--bull-gold); outline-offset: 2px; }
 
-  .roadmap {
-    display: flex;
-    align-items: stretch;
-    width: 100%;
-    max-width: 380px;
-    gap: 6px;
-    flex: none;
-  }
-
-  .stage-chip {
-    flex: 1;
-    border-radius: 12px;
-    padding: 9px 8px 8px;
-    background: var(--ink-900);
-    border: 1px solid var(--ink-700);
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    transition: border-color 0.3s, background 0.3s;
-  }
-  .stage-chip .num {
-    font-family: 'Mona12TextKR', monospace;
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 0.05em;
-  }
-  .stage-chip .name {
-    font-family: 'Mona12TextKR', sans-serif;
-    font-weight: 800;
-    font-size: 12.5px;
-    color: var(--paper);
-  }
-  .stage-chip .range {
-    font-family: 'Mona12TextKR', monospace;
-    font-size: 10px;
-    color: var(--muted);
-    font-variant-numeric: tabular-nums;
-  }
-  .stage-chip.active {
-    border-color: var(--bull-gold);
-    background: linear-gradient(180deg, rgba(245,185,66,0.14), rgba(245,185,66,0.04));
-  }
-  .stage-chip.active .num { color: var(--bull-gold); }
-
   .controls-hint {
     display: flex;
     gap: 14px;
@@ -271,7 +227,7 @@
   }
 
   @media (max-height: 700px) {
-    .roadmap, .credit { display: none; }
+    .credit { display: none; }
   }
   @media (max-height: 560px) {
     .eyebrow, .tagline { display: none; }
@@ -534,24 +490,6 @@
       </div>
     </div>
   </div>
-  </div>
-
-  <div class="roadmap" id="roadmap">
-    <div class="stage-chip" data-stage="0">
-      <span class="num">STAGE 01</span>
-      <span class="name">프리마켓</span>
-      <span class="range">0–150m · x1.0</span>
-    </div>
-    <div class="stage-chip" data-stage="1">
-      <span class="num">STAGE 02</span>
-      <span class="name">개장 변동성</span>
-      <span class="range">151–350m · x1.3</span>
-    </div>
-    <div class="stage-chip" data-stage="2">
-      <span class="num">STAGE 03</span>
-      <span class="name">마녀의 날</span>
-      <span class="range">351m+ · x1.6</span>
-    </div>
   </div>
 
   <div class="controls-hint">
@@ -1031,7 +969,6 @@
       curStageIdx = newStageIdx;
       stageAnnounceT = 1.6;
       sfx.stage();
-      updateRoadmapUI();
     }
 
     // player physics — a 2nd tap within DOUBLE_TAP_WINDOW upgrades the jump
@@ -1732,12 +1669,6 @@
     ctx.textAlign='left';
   }
 
-  function updateRoadmapUI(){
-    document.querySelectorAll('.stage-chip').forEach((el,i)=>{
-      el.classList.toggle('active', i===curStageIdx);
-    });
-  }
-
   // ---------- Loop ----------
   function frame(t){
     if(lastT===null) lastT = t;
@@ -1749,7 +1680,6 @@
   }
 
   resize();
-  updateRoadmapUI();
   requestAnimationFrame(frame);
 })();
 </script>
