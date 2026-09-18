@@ -487,7 +487,7 @@
             <span class="end-stats-value" id="endWon">0원</span>
             <span class="end-stats-sub" id="endDistance">0m · 프리마켓</span>
           </div>
-          <p class="end-caption" id="endCaption">10,000원까지 모이면 <b>월가의 황소</b> 뱃지를 드려요</p>
+          <p class="end-caption" id="endCaption"></p>
           <div class="end-secret" id="endSecret">
             <span class="secret-tag" id="secretTag">🎉 TOP 3 공개!</span>
             <p class="secret-list" id="secretList"></p>
@@ -664,11 +664,10 @@
   ];
   const COIN_ICONS = ['coin','won','bill'];                        // dollar-arc pickup icons — one style per spawned arc
 
-  // 오늘의 관심종목 — 직접 갱신 (5,000원=TOP3 공개, 10,000원=진짜 1등 공개)
+  // 오늘의 관심종목 — 직접 갱신 (5,000원 달성 시 TOP3 공개)
   const TOP3_TICKERS = ['NVDA', 'AVGO', 'AMZN'];
-  const TOP1_TICKER = 'NVDA';
   const TOP3_GOAL = 5000;
-  const TOP1_GOAL = 10000;
+  const WON_CAP = 10000; // currentWon()'s ceiling — also where the arrival cutscene triggers
 
   // ---------- Stage config ----------
   const STAGES = [
@@ -814,7 +813,7 @@
   const bubbleLines = ['거의 다 왔어, 초스!','월가가 코앞이야!','조금만 더 힘내자!','불장이 기다리고 있어!'];
 
   function currentWon(){
-    return Math.min(coinsCollected*120 + Math.floor(distance)*6, 10000);
+    return Math.min(coinsCollected*120 + Math.floor(distance)*6, WON_CAP);
   }
   function showEndScreen(){
     const won = currentWon();
@@ -841,15 +840,10 @@
         endCaptionEl.innerHTML = '';
       }
     }
-    if(won >= TOP1_GOAL){
-      secretTagEl.textContent = '🦈 오늘의 1등 관심종목 공개';
-      secretListEl.textContent = TOP1_TICKER;
-      secretSubEl.innerHTML = '오늘 초스 상어가 주목하는 종목입니다.<br>내일 새로운 TOP 3가 공개됩니다 — 내일 다시 도전해보세요!';
-      endSecretEl.classList.add('show');
-    } else if(won >= TOP3_GOAL){
+    if(won >= TOP3_GOAL){
       secretTagEl.textContent = '🎉 TOP 3 공개!';
       secretListEl.textContent = TOP3_TICKERS.join('  ·  ');
-      secretSubEl.innerHTML = '그런데… 👀 <b>진짜 1등 종목은?</b><br>10,000원 달성 시 공개';
+      secretSubEl.innerHTML = '오늘 초스 상어가 주목하는 종목입니다.<br>내일 새로운 TOP 3가 공개됩니다 — 내일 다시 도전해보세요!';
       endSecretEl.classList.add('show');
     } else {
       endSecretEl.classList.remove('show');
@@ -1161,7 +1155,7 @@
 
     // hit the 10,000원 cap — end the run here with an arrival cutscene
     // instead of letting the player keep running with a maxed-out total
-    if(currentWon() >= TOP1_GOAL){
+    if(currentWon() >= WON_CAP){
       state = 'arriving';
       arriveT = 0;
       obstacles = [];
