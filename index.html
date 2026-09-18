@@ -767,7 +767,10 @@
 
   let player, obstacles, items, particles, distance, elapsed, spawnTimer, nextSpawnGap,
       hearts, invulnT, buffT, activeBuffLabel, shakeT, shakeMag, coinsCollected, tickerX, curStageIdx, stageAnnounceT, preOpenT,
-      trendPoints, trendNextWx;
+      trendPoints, trendNextWx, arriveT, arrivedFinale;
+
+  const ARRIVE_DOOR_X = LW*0.7;   // where the building door sits — the shark runs to here, not off-screen
+  const ARRIVE_DURATION = 1.6;    // total cutscene length before the end screen shows
 
   function resetGame(){
     player = { x:64, y:GROUND_Y-64, w:52, h:64, vy:0, onGround:true, jumpBuffered:false, jumpBufferT:0, landGraceT:0, legPhase:0 };
@@ -789,6 +792,8 @@
     stageAnnounceT = 1.4;
     trendPoints = [{x:0,y:175,up:false}];
     trendNextWx = 0;
+    arriveT = 0;
+    arrivedFinale = false;
   }
   resetGame();
   preOpenT = 300;
@@ -816,7 +821,13 @@
     endWonEl.textContent = won.toLocaleString()+'원';
     const record = distance >= best-0.5;
     endDistanceEl.textContent = Math.floor(distance)+'m · '+STAGES[curStageIdx].name + (record?' · 🏆 신기록':'');
-    if(challengeWon){
+    if(arrivedFinale){
+      endHeadlineEl.innerHTML = '월가 출근<br>완료! 🏢';
+      endBubbleEl.textContent = '오늘 하루도 해냈다, 초스!';
+      endCaptionEl.innerHTML = challengeWon
+        ? (won > challengeWon ? challengerName+'님의 도전장도 씹어먹었다!' : challengerName+'님의 '+challengeWon.toLocaleString()+'원엔 아깝게 못 미쳤어요')
+        : '';
+    } else if(challengeWon){
       const beat = won > challengeWon;
       endHeadlineEl.innerHTML = beat ? '도전장을 씹어먹었다!<br>기록 경신!' : '아깝다, 코앞에서<br>놓쳤다!';
       endBubbleEl.textContent = beat ? '내가 이겼다, 초스!' : '다시 도전해볼까?';
@@ -1033,6 +1044,20 @@
       if(preOpenT <= 0) preOpenT = 300;
       return;
     }
+    if(state === 'arriving'){
+      arriveT += dt;
+      const t = Math.min(arriveT / (ARRIVE_DURATION*0.7), 1);
+      player.x = lerp(64, ARRIVE_DOOR_X, 1-Math.pow(1-t,3)); // ease-out run to the door
+      player.legPhase += dt * 11;
+      if(arriveT > ARRIVE_DURATION*0.55 && Math.random()<0.5){
+        spawnParticles(player.x+player.w/2, player.y+player.h*0.7, 1, COL.gold, 60);
+      }
+      if(arriveT >= ARRIVE_DURATION){
+        arrivedFinale = true;
+        endGame();
+      }
+      return;
+    }
     if(state !== 'playing'){
       if(invulnT>0) invulnT -= dt;
       return;
@@ -1134,6 +1159,20 @@
       }
     }
 
+    // hit the 10,000원 cap — end the run here with an arrival cutscene
+    // instead of letting the player keep running with a maxed-out total
+    if(currentWon() >= TOP1_GOAL){
+      state = 'arriving';
+      arriveT = 0;
+      obstacles = [];
+      items = [];
+      player.y = GROUND_Y - player.h; // land cleanly so the run-in animation doesn't start mid-air
+      player.vy = 0;
+      player.onGround = true;
+      sfx.stage();
+      return;
+    }
+
     // particles
     for(let i=particles.length-1;i>=0;i--){
       const p = particles[i];
@@ -1184,6 +1223,7 @@
     drawTrendLine();
     drawBuildings();
     drawGroundStrip();
+    if(state==='arriving') drawArrivalDoor();
 
     for(const it of items) drawItem(it);
     for(const o of obstacles) drawObstacle(o);
@@ -1339,13 +1379,54 @@
     return 1 + maxGrow * clamp(t,0,1);
   }
 
+  // shrinks/fades the shark in its last stride so it reads as walking
+  // through the door rather than just stopping in front of it
+  function arrivalProgress(){
+    if(state!=='arriving') return {scale:1, alpha:1};
+    const shrinkStart = ARRIVE_DURATION*0.72;
+    if(arriveT < shrinkStart) return {scale:1, alpha:1};
+    const t = clamp((arriveT-shrinkStart)/(ARRIVE_DURATION-shrinkStart), 0, 1);
+    return { scale: 1-t*0.85, alpha: 1-t };
+  }
+
+  function drawArrivalDoor(){
+    const dx = ARRIVE_DOOR_X, dh = 150, dw = 64;
+    const bx = dx - dw/2;
+    ctx.save();
+    // the building itself
+    ctx.fillStyle = COL.buildNear;
+    ctx.fillRect(bx, GROUND_Y-dh-40, dw, dh+40);
+    ctx.fillStyle = 'rgba(245,185,66,0.55)';
+    for(let ry=GROUND_Y-dh-30; ry<GROUND_Y-dh; ry+=16){
+      for(let rx=bx+8; rx<bx+dw-8; rx+=14) ctx.fillRect(rx,ry,7,9);
+    }
+    // glowing doorway the shark runs into
+    const glow = 0.5 + Math.sin(arriveT*6)*0.15;
+    const g = ctx.createRadialGradient(dx,GROUND_Y-dh*0.4,4, dx,GROUND_Y-dh*0.4,dw*0.9);
+    g.addColorStop(0, `rgba(255,217,138,${glow})`);
+    g.addColorStop(1, 'rgba(255,217,138,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(bx-20, GROUND_Y-dh, dw+40, dh);
+    ctx.fillStyle = COL.gold2;
+    roundRect(dx-22, GROUND_Y-dh, 44, dh, 10); ctx.fill();
+    ctx.fillStyle = '#3A2B08';
+    roundRect(dx-16, GROUND_Y-dh+10, 32, dh-10, 8); ctx.fill();
+    ctx.fillStyle = COL.gold;
+    ctx.font = "bold 11px 'Mona12TextKR', sans-serif";
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText('WALL ST.', dx, GROUND_Y-dh-14);
+    ctx.restore();
+  }
+
   function drawShark(){
     const flashHidden = invulnT>0 && Math.floor(invulnT*14)%2===0;
     if(flashHidden) return;
 
     const {x,y,w,h} = player;
+    const arrive = arrivalProgress();
     ctx.save();
-    const scale = buffScale();
+    ctx.globalAlpha = arrive.alpha;
+    const scale = buffScale() * arrive.scale;
     ctx.translate(x+w/2, y+h);
     ctx.scale(scale, scale);
     ctx.translate(-(x+w/2), -(y+h));
