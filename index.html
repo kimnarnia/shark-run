@@ -561,7 +561,26 @@
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
 
+  // some in-app WebViews (e.g. Slack's) fail to honor CSS aspect-ratio through
+  // the nested flex/min-height:100dvh chain and collapse the screen to a
+  // sliver, so the box is sized in JS from measured pixels instead.
+  const gameAreaEl = document.querySelector('.game-area');
+  const screenWrapEl = document.querySelector('.screen-wrap');
+  const CABINET_PAD = 14;   // must match .cabinet's CSS padding
+  const CABINET_MAX_H = 680; // must match .cabinet's CSS max-height
+  function layoutCabinet(){
+    if(!gameAreaEl || !screenWrapEl) return;
+    const areaRect = gameAreaEl.getBoundingClientRect();
+    const availW = Math.max(0, areaRect.width - CABINET_PAD*2);
+    const availH = Math.max(0, Math.min(areaRect.height, CABINET_MAX_H) - CABINET_PAD*2);
+    if(availW <= 0 || availH <= 0) return; // layout not settled yet (e.g. 100dvh not resolved) — try again next pass
+    let w = availW, h = w * (LH/LW);
+    if(h > availH){ h = availH; w = h * (LW/LH); }
+    screenWrapEl.style.width = w+'px';
+    screenWrapEl.style.height = h+'px';
+  }
   function resize(){
+    layoutCabinet();
     const rect = canvas.getBoundingClientRect();
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.round(rect.width * dpr);
@@ -569,6 +588,21 @@
     ctx.setTransform(canvas.width / LW, 0, 0, canvas.height / LH, 0, 0);
   }
   window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', resize);
+  // covers WebViews where the first layout pass (esp. one driven by 100dvh)
+  // isn't settled yet when this script runs, so no 'resize' event ever fires
+  if(window.ResizeObserver && gameAreaEl){
+    let roScheduled = false;
+    const ro = new ResizeObserver(()=>{
+      if(roScheduled) return;
+      roScheduled = true;
+      requestAnimationFrame(()=>{ roScheduled = false; resize(); });
+    });
+    ro.observe(gameAreaEl);
+  } else {
+    setTimeout(resize, 50);
+    setTimeout(resize, 300);
+  }
 
   // ---------- Palette ----------
   const COL = {
