@@ -672,11 +672,11 @@
 
   // ---------- Stage config ----------
   const STAGES = [
-    { key:'premarket', name:'프리마켓', from:0, to:150, mult:1.0, spawnMin:78, spawnMax:112, sky:['dawnTop','dawnMid','dawnBot'],
+    { key:'premarket', name:'프리마켓', from:0, to:50, mult:1.0, spawnMin:78, spawnMax:112, sky:['dawnTop','dawnMid','dawnBot'],
       tickers:['개장 5분 전, 프리마켓 거래 시작...','연준 발표 대기중...','초스, 출근 준비 완료'] },
-    { key:'open', name:'개장 변동성', from:150, to:350, mult:1.3, spawnMin:54, spawnMax:80, sky:['dayTop','dayMid','dayBot'],
+    { key:'open', name:'개장 변동성', from:50, to:100, mult:1.3, spawnMin:54, spawnMax:80, sky:['dayTop','dayMid','dayBot'],
       tickers:['정규장 개장! 변동성 확대','금리 인상 우려 급부상','어닝쇼크 속출 중'] },
-    { key:'witching', name:'마녀의 날', from:350, to:Infinity, mult:1.6, spawnMin:40, spawnMax:60, sky:['stormTop','stormMid','stormBot'],
+    { key:'witching', name:'마녀의 날', from:100, to:Infinity, mult:1.6, spawnMin:40, spawnMax:60, sky:['stormTop','stormMid','stormBot'],
       tickers:['쿼드러플 위칭 데이 돌입','공매도 세력 출현!','변동성 지수 폭등 중'] }
   ];
   function stageIndexAt(dist){
