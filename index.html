@@ -1098,7 +1098,7 @@
       if(!o.hit && invulnT<=0 && buffT<=0 && player.landGraceT<=0 && rectsOverlap(player.x+11,player.y+9,player.w-22,player.h-14, o.x,o.y,o.w,o.h)){
         o.hit = true;
         hearts -= 1;
-        invulnT = 1.4;
+        invulnT = 0.2; // a brief flinch, not real mercy — long enough (1.4s) and it silently no-sold the very next obstacle in any close combo
         shakeT = 0.35; shakeMag = 10;
         sfx.hit();
         spawnParticles(player.x+player.w/2, player.y+player.h/2, 10, COL.red, 140);
