@@ -1316,6 +1316,16 @@
       ctx.fillStyle = COL.gold;
       ctx.beginPath(); ctx.ellipse(0, h*0.1, w*0.62+pulse, h*0.58+pulse, 0,0,Math.PI*2); ctx.fill();
       ctx.restore();
+      // a clear shield ring (distinct from the soft glow above) so
+      // invincibility reads as "protected", not just "powered up"
+      ctx.save();
+      ctx.globalAlpha = 0.85;
+      ctx.strokeStyle = COL.gold2;
+      ctx.lineWidth = 2.4;
+      ctx.setLineDash([7, 5]);
+      ctx.lineDashOffset = -elapsed*40;
+      ctx.beginPath(); ctx.ellipse(0, h*0.1, w*0.72+pulse*0.6, h*0.68+pulse*0.6, 0,0,Math.PI*2); ctx.stroke();
+      ctx.restore();
     }
 
     ctx.translate(-w/2,-h/2);
@@ -1635,11 +1645,7 @@
     }
 
     if(buffT>0){
-      ctx.fillStyle = COL.gold;
-      ctx.font = "bold 11px 'Mona12TextKR', sans-serif";
-      ctx.textAlign='center';
-      ctx.fillText('🐂 ' + activeBuffLabel + ' ' + buffT.toFixed(1)+'s', LW/2, 30);
-      ctx.textAlign='left';
+      drawTag(LW/2, 34, '🛡️ 무적! '+buffT.toFixed(1)+'s · '+activeBuffLabel, COL.gold);
     }
 
     if(stageAnnounceT>0){
