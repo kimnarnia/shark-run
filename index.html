@@ -750,7 +750,7 @@
     url.search = '';
     url.searchParams.set('c', String(won));
     url.searchParams.set('n', name);
-    const shareText = '🦈💰 ' + name + '님이 ' + won.toLocaleString() + '원 기록에 도전장을 던졌어요! 넘을 수 있어? 🔥';
+    const shareText = '🦈 ' + name + '님이 ' + won.toLocaleString() + '원 기록에 도전장을 던졌어요! 넘을 수 있어? 🔥';
     if(navigator.share){
       navigator.share({ title:'샤크런 도전장', text: shareText, url: url.toString() }).catch(()=>{});
       return;
