@@ -153,7 +153,7 @@
      footer text is trimmed too, since every line it takes is a line the
      game screen doesn't get. */
   @media (max-width: 640px) {
-    .page { gap: clamp(4px, 1dvh, 10px); padding: 10px 16px; }
+    .page { height: 100dvh; min-height: 0; overflow: hidden; gap: clamp(4px, 1dvh, 10px); padding: 10px 16px; }
     .cabinet {
       padding: 0;
       background: none;
