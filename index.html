@@ -153,7 +153,7 @@
      footer text is trimmed too, since every line it takes is a line the
      game screen doesn't get. */
   @media (max-width: 640px) {
-    .page { height: 100dvh; min-height: 0; overflow: hidden; gap: clamp(4px, 1dvh, 10px); padding: 10px 16px; }
+    .page { height: var(--vh, 100dvh); min-height: 0; overflow: hidden; gap: clamp(4px, 1dvh, 10px); padding: 10px 16px; }
     .cabinet {
       padding: 0;
       background: none;
@@ -525,6 +525,13 @@
   const gameAreaEl = document.querySelector('.game-area');
   const screenWrapEl = document.querySelector('.screen-wrap');
   const MOBILE_BP = 640; // must match the .cabinet mobile media query breakpoint
+  // 100dvh itself is unreliable in the same WebViews (it's what produced the
+  // sliver above) — .page uses this measured value instead so it can never
+  // resolve taller than the screen actually visible right now.
+  function setRealVH(){
+    const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+    document.documentElement.style.setProperty('--vh', h+'px');
+  }
   function layoutCabinet(){
     if(!gameAreaEl || !screenWrapEl) return;
     const isMobile = window.innerWidth <= MOBILE_BP;
@@ -540,6 +547,7 @@
     screenWrapEl.style.height = h+'px';
   }
   function resize(){
+    setRealVH();
     layoutCabinet();
     const rect = canvas.getBoundingClientRect();
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -549,6 +557,7 @@
   }
   window.addEventListener('resize', resize);
   window.addEventListener('orientationchange', resize);
+  if(window.visualViewport) window.visualViewport.addEventListener('resize', resize);
   // covers WebViews where the first layout pass (esp. one driven by 100dvh)
   // isn't settled yet when this script runs, so no 'resize' event ever fires
   if(window.ResizeObserver && gameAreaEl){
@@ -559,10 +568,16 @@
       requestAnimationFrame(()=>{ roScheduled = false; resize(); });
     });
     ro.observe(gameAreaEl);
-  } else {
-    setTimeout(resize, 50);
-    setTimeout(resize, 300);
   }
+  // .page's height is JS-driven (--vh) rather than pure CSS now, so if
+  // window.innerHeight itself reads 0 on the very first synchronous tick,
+  // .page/.game-area collapse and stay collapsed — nothing left to resize
+  // ever changes size again, so the ResizeObserver above never re-fires.
+  // unconditional retries break that deadlock regardless of RO support.
+  requestAnimationFrame(resize);
+  setTimeout(resize, 50);
+  setTimeout(resize, 300);
+  setTimeout(resize, 1000);
 
   // ---------- Palette ----------
   const COL = {
@@ -872,6 +887,10 @@
   // landing just outside it (title, hints, margins) silently did nothing
   document.addEventListener('pointerdown', (e)=>{
     if(e.target.closest('button')) return;
+    // jumping should forgive a tap landing just off the canvas, but
+    // starting/retrying from a stray tap on the title or margins is
+    // an accidental game start, not a shortcut — require the canvas itself
+    if(state !== 'playing' && e.target !== canvas) return;
     e.preventDefault();
     ensureAudio();
     pressStart();
