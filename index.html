@@ -147,6 +147,18 @@
     background: #000;
   }
 
+  /* on an actual phone the decorative arcade-cabinet bezel just cages the
+     game inside a picture of a phone — drop the frame and let the canvas
+     use the real screen instead of a shrunken preview of it */
+  @media (max-width: 640px) {
+    .cabinet {
+      padding: 0;
+      background: none;
+      box-shadow: none;
+      border-radius: 22px;
+    }
+  }
+
   canvas#game {
     position: absolute;
     inset: 0;
@@ -566,13 +578,15 @@
   // sliver, so the box is sized in JS from measured pixels instead.
   const gameAreaEl = document.querySelector('.game-area');
   const screenWrapEl = document.querySelector('.screen-wrap');
-  const CABINET_PAD = 14;   // must match .cabinet's CSS padding
-  const CABINET_MAX_H = 680; // must match .cabinet's CSS max-height
+  const MOBILE_BP = 640; // must match the .cabinet mobile media query breakpoint
   function layoutCabinet(){
     if(!gameAreaEl || !screenWrapEl) return;
+    const isMobile = window.innerWidth <= MOBILE_BP;
+    const pad = isMobile ? 0 : 14;      // must match .cabinet's CSS padding at this breakpoint
+    const maxH = isMobile ? Infinity : 680; // must match .cabinet's CSS max-height at this breakpoint
     const areaRect = gameAreaEl.getBoundingClientRect();
-    const availW = Math.max(0, areaRect.width - CABINET_PAD*2);
-    const availH = Math.max(0, Math.min(areaRect.height, CABINET_MAX_H) - CABINET_PAD*2);
+    const availW = Math.max(0, areaRect.width - pad*2);
+    const availH = Math.max(0, Math.min(areaRect.height, maxH) - pad*2);
     if(availW <= 0 || availH <= 0) return; // layout not settled yet (e.g. 100dvh not resolved) — try again next pass
     let w = availW, h = w * (LH/LW);
     if(h > availH){ h = availH; w = h * (LW/LH); }
