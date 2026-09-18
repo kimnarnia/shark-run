@@ -1452,7 +1452,7 @@
   // ---- tall obstacle crests (drawn above the shared signpost base) ----
   function drawTallCrash(w,h){ // 대공황 — a plunging red chart badge
     ctx.fillStyle = '#2A1420';
-    ctx.beginPath(); ctx.arc(w/2,h*0.22,w/2,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(w/2,h*0.24,w/2-3,0,Math.PI*2); ctx.fill(); // radius trimmed so the badge stays inside the hitbox, not floating above it
     ctx.strokeStyle = COL.red; ctx.lineWidth = 2.5; ctx.lineCap='round'; ctx.lineJoin='round';
     ctx.beginPath();
     ctx.moveTo(w*0.22,h*0.1); ctx.lineTo(w*0.4,h*0.18); ctx.lineTo(w*0.32,h*0.26);
@@ -1468,11 +1468,14 @@
     ctx.fillRect(bx, by+bh*0.66, bw, 4);
     ctx.fillStyle = COL.red;
     ctx.beginPath();
-    ctx.moveTo(w/2, by-14); ctx.quadraticCurveTo(w/2+7, by-4, w/2, by+2); ctx.quadraticCurveTo(w/2-7, by-4, w/2, by-14);
+    // sits on the barrel's rim rather than floating above it — a shape drawn
+    // outside the obstacle's actual hitbox (o.y..o.y+o.h) can look touched
+    // without a collision ever registering
+    ctx.moveTo(w/2, by); ctx.quadraticCurveTo(w/2+6, by+7, w/2, by+13); ctx.quadraticCurveTo(w/2-6, by+7, w/2, by);
     ctx.fill();
   }
   function drawTallBubble(w,h){ // 닷컴버블 — a cracked, bursting glass bubble
-    const cx=w/2, cy=h*0.22, r=w/2;
+    const cx=w/2, cy=h*0.24, r=w/2-3; // trimmed to stay inside the hitbox (see drawTallCrash)
     ctx.fillStyle = 'rgba(229,72,77,0.22)';
     ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
     ctx.strokeStyle = COL.red; ctx.lineWidth = 2; ctx.stroke();
@@ -1502,7 +1505,7 @@
   // ---- short obstacle bodies ----
   function drawShortVirus(w,h){ // 코로나쇼크 — a spiky red virus blob
     ctx.fillStyle = COL.red;
-    spikyBlob(w/2,h*0.55,w*0.5,9);
+    spikyBlob(w/2,h*0.52,20,9); // radius trimmed so the spikes stay inside the hitbox
     ctx.fill();
     ctx.fillStyle = '#fff';
     ctx.font = "bold 10px 'Mona12TextKR', sans-serif";
@@ -1524,8 +1527,10 @@
     ctx.beginPath();
     ctx.ellipse(w/2, h/2, w/2, h/2.6, 0,0,Math.PI*2); ctx.fill();
     ctx.fillStyle = COL.red;
-    ctx.beginPath(); ctx.moveTo(0,h*0.35); ctx.lineTo(-16,h*0.1); ctx.lineTo(2,h*0.5); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(w,h*0.35); ctx.lineTo(w+16,h*0.1); ctx.lineTo(w-2,h*0.5); ctx.closePath(); ctx.fill();
+    // wingtips kept inside [0,w] — past that they poke outside the
+    // obstacle's actual hitbox and can visually graze the shark early
+    ctx.beginPath(); ctx.moveTo(2,h*0.35); ctx.lineTo(0,h*0.1); ctx.lineTo(6,h*0.5); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(w-2,h*0.35); ctx.lineTo(w,h*0.1); ctx.lineTo(w-6,h*0.5); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#FF5A5A';
     ctx.beginPath(); ctx.arc(w*0.38,h*0.42,2.6,0,Math.PI*2); ctx.fill();
     ctx.beginPath(); ctx.arc(w*0.6,h*0.42,2.6,0,Math.PI*2); ctx.fill();
