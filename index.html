@@ -930,42 +930,69 @@
     items.push({ type:'buff', x: LW + xOffset, y: GROUND_Y-140, r:18, taken:false, pulse:0, label:pick.label, icon:pick.icon });
   }
 
+  // small randomized offset so a repeated combo never sits at the exact
+  // same pixel gap twice — the shape stays learnable, the spacing doesn't
+  function jit(px){ return px + (Math.random()*16 - 8); }
+
   function spawnWave(){
     const roll = Math.random();
+    // an occasional totally clear wave breaks the metronome — a beat to
+    // breathe (or scoop a coin arc) instead of an obstacle every single time
+    const clearWave = Math.random() < 0.12;
+    if(clearWave){
+      if(Math.random() > 0.4) spawnDollarArc(90, 4, GROUND_Y-120);
+      if(Math.random() < 0.05) spawnBuff(200);
+      return;
+    }
     if(curStageIdx === 0){
-      spawnGroundObstacle('rate', 0);
+      if(roll < 0.45){
+        spawnGroundObstacle('rate', 0);
+      } else if(roll < 0.75){
+        spawnGroundObstacle('earnings', 0);
+      } else {
+        spawnGroundObstacle('rate', 0);
+        spawnGroundObstacle('earnings', jit(64));
+      }
       if(roll > 0.35) spawnDollarArc(130, 4, GROUND_Y-120);
     } else if(curStageIdx === 1){
-      if(roll < 0.32){
+      if(roll < 0.28){
         spawnGroundObstacle('rate', 0);
-      } else if(roll < 0.58){
+      } else if(roll < 0.52){
         spawnGroundObstacle('earnings', 0);
-      } else if(roll < 0.8){
+      } else if(roll < 0.66){
         spawnGroundObstacle('rate', 0);
-        spawnGroundObstacle('earnings', 64);
+        spawnGroundObstacle('earnings', jit(64));
+      } else if(roll < 0.8){
+        spawnGroundObstacle('earnings', 0);
+        spawnGroundObstacle('rate', jit(60));
+      } else if(roll < 0.92){
+        spawnAerialObstacle(0);
       } else {
         spawnGroundObstacle('earnings', 0);
-        spawnGroundObstacle('rate', 60);
+        spawnAerialObstacle(jit(70));
       }
       if(Math.random() > 0.5) spawnDollarArc(150, 4, GROUND_Y-130);
     } else {
-      if(roll < 0.2){
+      if(roll < 0.16){
         spawnGroundObstacle('rate', 0);
-      } else if(roll < 0.38){
+      } else if(roll < 0.3){
         spawnGroundObstacle('earnings', 0);
-        spawnAerialObstacle(56);
-      } else if(roll < 0.56){
+        spawnAerialObstacle(jit(56));
+      } else if(roll < 0.46){
         spawnAerialObstacle(0);
+      } else if(roll < 0.62){
+        spawnGroundObstacle('rate', 0);
+        spawnGroundObstacle('earnings', jit(62));
       } else if(roll < 0.76){
-        spawnGroundObstacle('rate', 0);
-        spawnGroundObstacle('earnings', 62);
-      } else if(roll < 0.9){
         spawnGroundObstacle('earnings', 0);
-        spawnGroundObstacle('rate', 58);
-        spawnAerialObstacle(390);
-      } else {
+        spawnGroundObstacle('rate', jit(58));
+        spawnAerialObstacle(jit(390));
+      } else if(roll < 0.88){
         spawnGroundObstacle('rate', 0);
-        spawnAerialObstacle(380);
+        spawnAerialObstacle(jit(380));
+      } else {
+        spawnAerialObstacle(0);
+        spawnGroundObstacle(Math.random()<0.5?'rate':'earnings', jit(190));
       }
       if(Math.random() > 0.6) spawnDollarArc(170, 5, GROUND_Y-135);
     }
