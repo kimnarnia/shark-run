@@ -149,14 +149,22 @@
 
   /* on an actual phone the decorative arcade-cabinet bezel just cages the
      game inside a picture of a phone — drop the frame and let the canvas
-     use the real screen instead of a shrunken preview of it */
+     use the real screen instead of a shrunken preview of it. the header/
+     footer text is trimmed too, since every line it takes is a line the
+     game screen doesn't get. */
   @media (max-width: 640px) {
+    .page { gap: clamp(4px, 1dvh, 10px); padding: 10px 16px; }
     .cabinet {
       padding: 0;
       background: none;
       box-shadow: none;
       border-radius: 22px;
     }
+    .eyebrow { display: none; }
+    h1 { font-size: clamp(20px, 5.5dvh, 34px); }
+    .tagline { font-size: 11px; line-height: 1.35; }
+    .controls-hint { font-size: 10px; gap: 10px; }
+    .credit { display: none; }
   }
 
   canvas#game {
@@ -859,7 +867,15 @@
       pressStart();
     }
   });
-  canvas.addEventListener('pointerdown', (e)=>{ e.preventDefault(); ensureAudio(); pressStart(); });
+  // the tap target is the whole page, not just the canvas — the game card
+  // doesn't fill the screen on mobile, so a canvas-only listener meant taps
+  // landing just outside it (title, hints, margins) silently did nothing
+  document.addEventListener('pointerdown', (e)=>{
+    if(e.target.closest('button')) return;
+    e.preventDefault();
+    ensureAudio();
+    pressStart();
+  });
   document.addEventListener('visibilitychange', ()=>{ if(document.hidden && state==='playing') lastT = null; });
 
   // ---------- Spawning ----------
