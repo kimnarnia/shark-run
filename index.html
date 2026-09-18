@@ -39,13 +39,16 @@
     user-select: none;
   }
 
-  html, body { height: 100%; }
+  /* this is a single fixed-layout game screen, never meant to scroll —
+     hard-block it at the document level so no leftover height mismatch
+     (dvh or otherwise) can ever surface as a scrollable page */
+  html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 
   body {
     background: radial-gradient(ellipse 120% 90% at 50% -10%, #182349 0%, var(--ink-950) 55%);
     color: var(--paper);
     margin: 0;
-    min-height: 100dvh;
+    min-height: 100%; /* not 100dvh: same unreliable-dvh WebViews that broke the canvas sizing can also make this taller than the real screen */
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: none;
     touch-action: manipulation;
