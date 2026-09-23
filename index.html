@@ -700,7 +700,7 @@
   // ---------- Game state ----------
   const MAX_HEARTS = 5; // was 3 — 10,000원(67개) 모으려면 그만큼 오래 버텨야 해서 여유를 크게 늘림
   const GROUND_Y = 560;
-  const GRAVITY = 2400;        // px/s^2, always applied
+  const GRAVITY = 1900;        // px/s^2, always applied — lower gravity = more hang time, forgiving every jump at once
   const SHORT_JUMP_V = -760;   // single tap — clears every normal obstacle on its own
   const LONG_JUMP_V = -1080;   // a 2nd quick tap mid-jump upgrades it to a long jump (clears wide combo gaps)
   const DOUBLE_TAP_WINDOW = 0.35; // seconds the 2nd tap has to land to upgrade the jump
@@ -973,10 +973,13 @@
       if(Math.random() < 0.05) spawnBuff(200);
       return;
     }
+    // combos (2 obstacles in one wave) always need two separate, correctly
+    // timed taps — much harder on a phone than a single obstacle, so they
+    // stay a minority of waves in every stage instead of the dominant case
     if(curStageIdx === 0){
-      if(roll < 0.45){
+      if(roll < 0.50){
         spawnGroundObstacle('rate', 0);
-      } else if(roll < 0.75){
+      } else if(roll < 0.85){
         spawnGroundObstacle('earnings', 0);
       } else {
         spawnGroundObstacle('rate', 0);
@@ -984,41 +987,39 @@
       }
       if(roll > 0.25) spawnDollarArc(130, 5, GROUND_Y-120);
     } else if(curStageIdx === 1){
-      if(roll < 0.28){
+      if(roll < 0.30){
         spawnGroundObstacle('rate', 0);
-      } else if(roll < 0.52){
+      } else if(roll < 0.58){
         spawnGroundObstacle('earnings', 0);
-      } else if(roll < 0.66){
+      } else if(roll < 0.78){
+        spawnAerialObstacle(0);
+      } else if(roll < 0.86){
         spawnGroundObstacle('rate', 0);
         spawnGroundObstacle('earnings', jit(150));
-      } else if(roll < 0.8){
+      } else if(roll < 0.94){
         spawnGroundObstacle('earnings', 0);
         spawnGroundObstacle('rate', jit(150));
-      } else if(roll < 0.92){
-        spawnAerialObstacle(0);
       } else {
         spawnGroundObstacle('earnings', 0);
         spawnAerialObstacle(jit(150));
       }
       if(Math.random() > 0.4) spawnDollarArc(150, 5, GROUND_Y-130);
     } else {
-      if(roll < 0.16){
+      if(roll < 0.22){
         spawnGroundObstacle('rate', 0);
-      } else if(roll < 0.3){
+      } else if(roll < 0.42){
         spawnGroundObstacle('earnings', 0);
-        spawnAerialObstacle(jit(150));
-      } else if(roll < 0.46){
-        spawnAerialObstacle(0);
       } else if(roll < 0.62){
+        spawnAerialObstacle(0);
+      } else if(roll < 0.74){
         spawnGroundObstacle('rate', 0);
         spawnGroundObstacle('earnings', jit(150));
-      } else if(roll < 0.76){
+      } else if(roll < 0.84){
         spawnGroundObstacle('earnings', 0);
-        spawnGroundObstacle('rate', jit(150));
-        spawnAerialObstacle(jit(390));
-      } else if(roll < 0.88){
+        spawnAerialObstacle(jit(150));
+      } else if(roll < 0.94){
         spawnGroundObstacle('rate', 0);
-        spawnAerialObstacle(jit(380));
+        spawnAerialObstacle(jit(150));
       } else {
         spawnAerialObstacle(0);
         spawnGroundObstacle(Math.random()<0.5?'rate':'earnings', jit(190));
