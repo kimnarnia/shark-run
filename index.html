@@ -668,15 +668,15 @@
   // 오늘의 관심종목 — 직접 갱신 (10,000원 달성 시 TOP3 공개, 같은 지점에서 출근 연출도 트리거)
   const TOP3_TICKERS = ['NVDA', 'AVGO', 'AMZN'];
   const WON_CAP = 10000; // currentWon()'s ceiling, the TOP3 reveal goal, and the arrival cutscene trigger — all the same number now
-  const COIN_VALUE = 150; // 원 per dollar-item collected
+  const COIN_VALUE = 150; // 원 per base dollar-item collected (bigger 500/1,000원 coins are rolled separately — see pickCoinValue)
 
   // ---------- Stage config ----------
   const STAGES = [
-    { key:'premarket', name:'프리마켓', from:0, to:50, mult:1.0, spawnMin:95, spawnMax:135, sky:['dawnTop','dawnMid','dawnBot'],
+    { key:'premarket', name:'프리마켓', from:0, to:50, mult:1.15, spawnMin:95, spawnMax:135, sky:['dawnTop','dawnMid','dawnBot'],
       tickers:['개장 5분 전, 프리마켓 거래 시작...','연준 발표 대기중...','초스, 출근 준비 완료'] },
-    { key:'open', name:'개장 변동성', from:50, to:100, mult:1.3, spawnMin:68, spawnMax:98, sky:['dayTop','dayMid','dayBot'],
+    { key:'open', name:'개장 변동성', from:50, to:100, mult:1.5, spawnMin:68, spawnMax:98, sky:['dayTop','dayMid','dayBot'],
       tickers:['정규장 개장! 변동성 확대','금리 인상 우려 급부상','어닝쇼크 속출 중'] },
-    { key:'witching', name:'마녀의 날', from:100, to:Infinity, mult:1.6, spawnMin:52, spawnMax:76, sky:['stormTop','stormMid','stormBot'],
+    { key:'witching', name:'마녀의 날', from:100, to:Infinity, mult:1.85, spawnMin:52, spawnMax:76, sky:['stormTop','stormMid','stormBot'],
       tickers:['쿼드러플 위칭 데이 돌입','공매도 세력 출현!','변동성 지수 폭등 중'] }
   ];
   function stageIndexAt(dist){
@@ -700,9 +700,9 @@
   // ---------- Game state ----------
   const MAX_HEARTS = 5; // was 3 — 10,000원(67개) 모으려면 그만큼 오래 버텨야 해서 여유를 크게 늘림
   const GROUND_Y = 560;
-  const GRAVITY = 1900;        // px/s^2, always applied — lower gravity = more hang time, forgiving every jump at once
-  const SHORT_JUMP_V = -760;   // single tap — clears every normal obstacle on its own
-  const LONG_JUMP_V = -1080;   // a 2nd quick tap mid-jump upgrades it to a long jump (clears wide combo gaps)
+  const GRAVITY = 2400;        // px/s^2, always applied — back to the original snappy value (1900 made the jump feel slow/floaty)
+  const SHORT_JUMP_V = -900;   // single tap — was -760; boosted instead of lowering gravity, so timing windows stay forgiving without the jump feeling sluggish
+  const LONG_JUMP_V = -1280;   // a 2nd quick tap mid-jump upgrades it to a long jump (clears wide combo gaps)
   const DOUBLE_TAP_WINDOW = 0.35; // seconds the 2nd tap has to land to upgrade the jump
   const BASE_SCROLL = 210;     // px/s at mult 1.0
   const BASE_METERS_PER_SEC = 6;
@@ -767,7 +767,7 @@
   }
 
   let player, obstacles, items, particles, distance, elapsed, spawnTimer, nextSpawnGap,
-      hearts, invulnT, buffT, buffKind, activeBuffLabel, shakeT, shakeMag, coinsCollected, tickerX, curStageIdx, stageAnnounceT, preOpenT,
+      hearts, invulnT, buffT, buffKind, activeBuffLabel, shakeT, shakeMag, coinWon, tickerX, curStageIdx, stageAnnounceT, preOpenT,
       trendPoints, trendNextWx, arriveT, arrivedFinale;
 
   const ARRIVE_DOOR_X = LW*0.7;   // where the building door sits — the shark runs to here, not off-screen
@@ -788,7 +788,7 @@
     buffKind = '';
     activeBuffLabel = '';
     shakeT = 0; shakeMag = 0;
-    coinsCollected = 0;
+    coinWon = 0;
     tickerX = 0;
     curStageIdx = 0;
     stageAnnounceT = 1.4;
@@ -817,7 +817,7 @@
 
   function currentWon(){
     // 달리기만 해서는 돈이 쌓이지 않는다 — 오직 돈 아이템을 먹어야 적립됨
-    return Math.min(coinsCollected*COIN_VALUE, WON_CAP);
+    return Math.min(coinWon, WON_CAP);
   }
   function showEndScreen(){
     const won = currentWon();
@@ -946,12 +946,23 @@
     const w = 40, h = 70;
     obstacles.push({ type:'short', aerial:true, x: LW + xOffset, y: GROUND_Y-h-15, w, h, label:pick.label, icon:pick.icon, hit:false });
   }
+  // most coins in an arc are the base 150원 coin, but each one independently
+  // has a small shot at being a bigger 500원 coin or a rare 1,000원 bill —
+  // "4-5개 150원짜리에서 간혹 3개+500원짜리 1개" per the user's own spec
+  function pickCoinValue(){
+    const r = Math.random();
+    if(r < 0.04) return 1000;
+    if(r < 0.18) return 500;
+    return COIN_VALUE;
+  }
   function spawnDollarArc(xOffset, count, baseY){
     const icon = COIN_ICONS[Math.floor(Math.random()*COIN_ICONS.length)];
     for(let i=0;i<count;i++){
       const t = i/(count-1||1);
       const arcY = baseY - Math.sin(t*Math.PI) * 70;
-      items.push({ type:'dollar', icon, x: LW + xOffset + i*34, y: arcY, r:12, taken:false });
+      const value = pickCoinValue();
+      const r = value===1000 ? 16 : value===500 ? 14 : 12;
+      items.push({ type:'dollar', icon, value, x: LW + xOffset + i*34, y: arcY, r, taken:false });
     }
   }
   function spawnBuff(xOffset){
@@ -970,7 +981,7 @@
     const clearWave = Math.random() < 0.12;
     if(clearWave){
       if(Math.random() > 0.3) spawnDollarArc(90, 5, GROUND_Y-120);
-      if(Math.random() < 0.05) spawnBuff(200);
+      if(Math.random() < 0.15) spawnBuff(200);
       return;
     }
     // combos (2 obstacles in one wave) always need two separate, correctly
@@ -1026,7 +1037,7 @@
       }
       if(Math.random() > 0.5) spawnDollarArc(170, 6, GROUND_Y-135);
     }
-    if(Math.random() < 0.05) spawnBuff(200);
+    if(Math.random() < 0.15) spawnBuff(200);
   }
 
   // ---------- Particles ----------
@@ -1160,9 +1171,9 @@
         if(rectsOverlap(player.x,player.y,player.w,player.h, it.x-r,it.y-r,r*2,r*2)){
           it.taken = true;
           if(it.type==='dollar'){
-            coinsCollected++;
+            coinWon += it.value;
             sfx.coin();
-            spawnParticles(it.x,it.y,5,COL.green,70);
+            spawnParticles(it.x,it.y, it.value>=1000?14:it.value>=500?9:5, COL.green, it.value>=500?130:70);
           } else if(it.type==='buff'){
             buffT = 5;
             buffKind = it.kind;
@@ -1688,7 +1699,13 @@
     ctx.save();
     if(it.type==='dollar'){
       ctx.translate(it.x,it.y);
-      if(it.icon==='won') drawCoinWon(it.r);
+      if(it.value>=1000){
+        drawCoinBill(it.r);
+        drawTag(0, -it.r-8, '+1,000원', COL.gold);
+      } else if(it.value>=500){
+        drawCoinBig500(it.r);
+        drawTag(0, -it.r-8, '+500원', COL.gold);
+      } else if(it.icon==='won') drawCoinWon(it.r);
       else if(it.icon==='bill') drawCoinBill(it.r);
       else drawCoinDollar(it.r);
     } else if(it.type==='buff'){
@@ -1734,6 +1751,20 @@
     roundRect(-r*0.8,-r*0.5,r*1.6,r,3); ctx.stroke();
     ctx.fillStyle = '#0E3D2E';
     ctx.beginPath(); ctx.arc(0,0,r*0.32,0,Math.PI*2); ctx.fill();
+  }
+  function drawCoinBig500(r){ // a bigger gold coin — the 500원 tier
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = COL.gold;
+    ctx.beginPath(); ctx.arc(0,0,r+4,0,Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = COL.gold2;
+    ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#7A4E10'; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.arc(0,0,r-2.5,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle='#7A4E10';
+    ctx.font="bold 14px 'Mona12TextKR', monospace";
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('₩',0,1);
   }
   // ---- buff rally crests (drawn on top of the shared pulsing gold disc) ----
   function drawBuffBull(){ // 레이건랠리 — bull horns
