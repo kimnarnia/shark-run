@@ -676,7 +676,7 @@
       tickers:['개장 5분 전, 프리마켓 거래 시작...','연준 발표 대기중...','초스, 출근 준비 완료'] },
     { key:'open', name:'개장 변동성', from:50, to:100, mult:1.5, spawnMin:68, spawnMax:98, sky:['dayTop','dayMid','dayBot'],
       tickers:['정규장 개장! 변동성 확대','금리 인상 우려 급부상','어닝쇼크 속출 중'] },
-    { key:'witching', name:'마녀의 날', from:100, to:Infinity, mult:1.85, spawnMin:52, spawnMax:76, sky:['stormTop','stormMid','stormBot'],
+    { key:'witching', name:'마녀의 날', from:100, to:Infinity, mult:2.2, spawnMin:52, spawnMax:76, sky:['stormTop','stormMid','stormBot'],
       tickers:['쿼드러플 위칭 데이 돌입','공매도 세력 출현!','변동성 지수 폭등 중'] }
   ];
   function stageIndexAt(dist){
@@ -1158,9 +1158,12 @@
         const pcx = player.x+player.w/2, pcy = player.y+player.h/2;
         const ddx = pcx-it.x, ddy = pcy-it.y;
         const dist = Math.hypot(ddx,ddy) || 1;
-        const pull = 640; // px/s — fast enough to visibly snap coins in within a fraction of a second
+        // accelerates as it closes in, so the pull reads as a dramatic
+        // last-second snap instead of a flat drift toward the player
+        const pull = 900 + 700*clamp(1-dist/260,0,1);
         it.x += (ddx/dist)*pull*dt;
         it.y += (ddy/dist)*pull*dt;
+        if(Math.random() < 0.6) spawnParticles(it.x,it.y,1,COL.green,40);
       } else {
         it.x += dx;
       }
@@ -1823,6 +1826,38 @@
     ctx.fillRect(-10.5,6.2,4,1.8);
     ctx.fillRect(6.5,6.2,4,1.8);
   }
+  function drawShieldIcon(){ // 무적 — a small shield with a checkmark
+    ctx.fillStyle = COL.gold2;
+    ctx.beginPath();
+    ctx.moveTo(0,-9); ctx.lineTo(7,-5.5); ctx.lineTo(7,1.5);
+    ctx.quadraticCurveTo(7,7.5,0,10); ctx.quadraticCurveTo(-7,7.5,-7,1.5);
+    ctx.lineTo(-7,-5.5); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#7A4E10'; ctx.lineWidth = 2; ctx.lineCap='round'; ctx.lineJoin='round';
+    ctx.beginPath(); ctx.moveTo(-3.5,0.5); ctx.lineTo(-1,3.5); ctx.lineTo(4,-2.5); ctx.stroke();
+  }
+  // an icon-plus-text pill for the active-buff HUD readout — drawn as vector
+  // shapes rather than an emoji character, since emoji glyphs can silently
+  // fail to render in some mobile webviews, leaving the player with no way
+  // to tell which buff they picked up
+  function drawBuffTag(cx, topY, iconFn, label, color){
+    ctx.font = "bold 10.5px 'Mona12TextKR', sans-serif";
+    ctx.textAlign='left';
+    const tw = ctx.measureText(label).width + 34;
+    const h = 20;
+    ctx.fillStyle = 'rgba(6,9,20,0.92)';
+    roundRect(cx-tw/2, topY-h+2, tw, h, 8); ctx.fill();
+    ctx.strokeStyle = color; ctx.globalAlpha = 0.65; ctx.lineWidth = 1;
+    roundRect(cx-tw/2, topY-h+2, tw, h, 8); ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.save();
+    ctx.translate(cx-tw/2+14, topY-h/2+3);
+    ctx.scale(0.72,0.72);
+    iconFn();
+    ctx.restore();
+    ctx.fillStyle = '#fff';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, cx-tw/2+27, topY-h/2+3);
+  }
 
   function drawHUD(){
     if(state !== 'playing') return;
@@ -1848,9 +1883,9 @@
     }
 
     if(buffT>0 && buffKind==='invuln'){
-      drawTag(LW/2, 34, '🛡️ 무적! '+buffT.toFixed(1)+'s · '+activeBuffLabel, COL.gold);
+      drawBuffTag(LW/2, 34, drawShieldIcon, '무적! '+buffT.toFixed(1)+'s · '+activeBuffLabel, COL.gold);
     } else if(buffT>0 && buffKind==='magnet'){
-      drawTag(LW/2, 34, '🧲 머니마그넷! '+buffT.toFixed(1)+'s', COL.green);
+      drawBuffTag(LW/2, 34, drawBuffMagnet, '머니마그넷! '+buffT.toFixed(1)+'s', COL.green);
     }
 
     if(stageAnnounceT>0){
