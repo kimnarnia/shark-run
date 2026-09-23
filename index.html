@@ -655,18 +655,20 @@
     {label:'블랙먼데이', icon:'meteor'},
   ];
   const BULL_RALLIES = [                                           // buff pickup — label paired with a distinct icon
-    {label:'레이건랠리', icon:'bull'},
-    {label:'닷컴붐', icon:'rocket'},
-    {label:'원자재랠리', icon:'bar'},
-    {label:'최장기불장', icon:'crown'},
-    {label:'유동성파티', icon:'party'},
-    {label:'AI랠리', icon:'chip'},
+    {label:'레이건랠리', icon:'bull', kind:'invuln'},
+    {label:'닷컴붐', icon:'rocket', kind:'invuln'},
+    {label:'원자재랠리', icon:'bar', kind:'invuln'},
+    {label:'최장기불장', icon:'crown', kind:'invuln'},
+    {label:'유동성파티', icon:'party', kind:'invuln'},
+    {label:'AI랠리', icon:'chip', kind:'invuln'},
+    {label:'머니마그넷', icon:'magnet', kind:'magnet'},               // pulls every dollar item on screen straight to the shark
   ];
   const COIN_ICONS = ['coin','won','bill'];                        // dollar-arc pickup icons — one style per spawned arc
 
   // 오늘의 관심종목 — 직접 갱신 (10,000원 달성 시 TOP3 공개, 같은 지점에서 출근 연출도 트리거)
   const TOP3_TICKERS = ['NVDA', 'AVGO', 'AMZN'];
   const WON_CAP = 10000; // currentWon()'s ceiling, the TOP3 reveal goal, and the arrival cutscene trigger — all the same number now
+  const COIN_VALUE = 150; // 원 per dollar-item collected
 
   // ---------- Stage config ----------
   const STAGES = [
@@ -764,7 +766,7 @@
   }
 
   let player, obstacles, items, particles, distance, elapsed, spawnTimer, nextSpawnGap,
-      hearts, invulnT, buffT, activeBuffLabel, shakeT, shakeMag, coinsCollected, tickerX, curStageIdx, stageAnnounceT, preOpenT,
+      hearts, invulnT, buffT, buffKind, activeBuffLabel, shakeT, shakeMag, coinsCollected, tickerX, curStageIdx, stageAnnounceT, preOpenT,
       trendPoints, trendNextWx, arriveT, arrivedFinale;
 
   const ARRIVE_DOOR_X = LW*0.7;   // where the building door sits — the shark runs to here, not off-screen
@@ -782,6 +784,7 @@
     hearts = 3;
     invulnT = 0;
     buffT = 0;
+    buffKind = '';
     activeBuffLabel = '';
     shakeT = 0; shakeMag = 0;
     coinsCollected = 0;
@@ -813,7 +816,7 @@
 
   function currentWon(){
     // 달리기만 해서는 돈이 쌓이지 않는다 — 오직 돈 아이템을 먹어야 적립됨
-    return Math.min(coinsCollected*120, WON_CAP);
+    return Math.min(coinsCollected*COIN_VALUE, WON_CAP);
   }
   function showEndScreen(){
     const won = currentWon();
@@ -1114,7 +1117,8 @@
       const o = obstacles[i];
       o.x += dx;
       if(o.x + o.w < -20){ obstacles.splice(i,1); continue; }
-      if(!o.hit && invulnT<=0 && buffT<=0 && player.landGraceT<=0 && rectsOverlap(player.x+11,player.y+9,player.w-22,player.h-14, o.x,o.y,o.w,o.h)){
+      const invulnActive = buffT>0 && buffKind==='invuln';
+      if(!o.hit && invulnT<=0 && !invulnActive && player.landGraceT<=0 && rectsOverlap(player.x+11,player.y+9,player.w-22,player.h-14, o.x,o.y,o.w,o.h)){
         o.hit = true;
         hearts -= 1;
         invulnT = 0.2; // a brief flinch, not real mercy — long enough (1.4s) and it silently no-sold the very next obstacle in any close combo
@@ -1122,16 +1126,26 @@
         sfx.hit();
         spawnParticles(player.x+player.w/2, player.y+player.h/2, 10, COL.red, 140);
         if(hearts <= 0){ endGame(); return; }
-      } else if(!o.hit && buffT>0 && rectsOverlap(player.x,player.y,player.w,player.h, o.x,o.y,o.w,o.h)){
+      } else if(!o.hit && invulnActive && rectsOverlap(player.x,player.y,player.w,player.h, o.x,o.y,o.w,o.h)){
         o.hit = true;
         spawnParticles(o.x+o.w/2, o.y+o.h/2, 8, COL.gold, 120);
       }
     }
 
     // items
+    const magnetActive = buffT>0 && buffKind==='magnet';
     for(let i=items.length-1;i>=0;i--){
       const it = items[i];
-      it.x += dx;
+      if(it.type==='dollar' && magnetActive && !it.taken){
+        const pcx = player.x+player.w/2, pcy = player.y+player.h/2;
+        const ddx = pcx-it.x, ddy = pcy-it.y;
+        const dist = Math.hypot(ddx,ddy) || 1;
+        const pull = 640; // px/s — fast enough to visibly snap coins in within a fraction of a second
+        it.x += (ddx/dist)*pull*dt;
+        it.y += (ddy/dist)*pull*dt;
+      } else {
+        it.x += dx;
+      }
       if(it.x < -40){ items.splice(i,1); continue; }
       if(it.type==='buff') it.pulse += dt;
       if(!it.taken){
@@ -1144,6 +1158,7 @@
             spawnParticles(it.x,it.y,5,COL.green,70);
           } else if(it.type==='buff'){
             buffT = 5;
+            buffKind = it.kind;
             activeBuffLabel = it.label;
             sfx.buff();
             spawnParticles(it.x,it.y,16,COL.gold,150);
@@ -1426,7 +1441,7 @@
     ctx.translate(-(x+w/2), -(y+h));
     ctx.translate(x+w/2, y+h/2);
 
-    if(buffT>0){
+    if(buffT>0 && buffKind==='invuln'){
       const pulse = 6+Math.sin(elapsed*10)*3;
       ctx.save();
       ctx.globalAlpha = 0.35;
@@ -1442,6 +1457,23 @@
       ctx.setLineDash([7, 5]);
       ctx.lineDashOffset = -elapsed*40;
       ctx.beginPath(); ctx.ellipse(0, h*0.1, w*0.72+pulse*0.6, h*0.68+pulse*0.6, 0,0,Math.PI*2); ctx.stroke();
+      ctx.restore();
+    } else if(buffT>0 && buffKind==='magnet'){
+      // a wide pulsing pull-radius ring in coin-green, not the gold shield —
+      // reads as "attracting money", not "invincible"
+      const pulse = 10+Math.sin(elapsed*8)*5;
+      ctx.save();
+      ctx.globalAlpha = 0.22;
+      ctx.fillStyle = COL.green;
+      ctx.beginPath(); ctx.ellipse(0, h*0.1, w*0.9+pulse, h*0.82+pulse, 0,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+      ctx.save();
+      ctx.globalAlpha = 0.7;
+      ctx.strokeStyle = COL.green;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([2, 6]);
+      ctx.lineDashOffset = -elapsed*80;
+      ctx.beginPath(); ctx.ellipse(0, h*0.1, w*0.95+pulse*0.7, h*0.88+pulse*0.7, 0,0,Math.PI*2); ctx.stroke();
       ctx.restore();
     }
 
@@ -1666,6 +1698,7 @@
       else if(it.icon==='crown') drawBuffCrown();
       else if(it.icon==='party') drawBuffParty();
       else if(it.icon==='chip') drawBuffChip();
+      else if(it.icon==='magnet') drawBuffMagnet();
       else drawBuffBull();
     }
     ctx.restore();
@@ -1742,6 +1775,16 @@
     ctx.fillStyle = COL.gold2;
     ctx.beginPath(); ctx.arc(0,0,2,0,Math.PI*2); ctx.fill();
   }
+  function drawBuffMagnet(){ // 머니마그넷 — a horseshoe magnet
+    ctx.strokeStyle = '#7A4E10'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(0,1,8,Math.PI*0.15,Math.PI*0.85); ctx.stroke();
+    ctx.fillStyle = '#E5484D';
+    ctx.fillRect(-10.5,1,4,7);
+    ctx.fillRect(6.5,1,4,7);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(-10.5,6.2,4,1.8);
+    ctx.fillRect(6.5,6.2,4,1.8);
+  }
 
   function drawHUD(){
     if(state !== 'playing') return;
@@ -1766,8 +1809,10 @@
       ctx.fillText('♥', LW-30-i*22, 60);
     }
 
-    if(buffT>0){
+    if(buffT>0 && buffKind==='invuln'){
       drawTag(LW/2, 34, '🛡️ 무적! '+buffT.toFixed(1)+'s · '+activeBuffLabel, COL.gold);
+    } else if(buffT>0 && buffKind==='magnet'){
+      drawTag(LW/2, 34, '🧲 머니마그넷! '+buffT.toFixed(1)+'s', COL.green);
     }
 
     if(stageAnnounceT>0){
