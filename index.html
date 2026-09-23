@@ -812,7 +812,8 @@
   const bubbleLines = ['거의 다 왔어, 초스!','월가가 코앞이야!','조금만 더 힘내자!','불장이 기다리고 있어!'];
 
   function currentWon(){
-    return Math.min(coinsCollected*120 + Math.floor(distance)*6, WON_CAP);
+    // 달리기만 해서는 돈이 쌓이지 않는다 — 오직 돈 아이템을 먹어야 적립됨
+    return Math.min(coinsCollected*120, WON_CAP);
   }
   function showEndScreen(){
     const won = currentWon();
@@ -970,7 +971,7 @@
         spawnGroundObstacle('earnings', 0);
       } else {
         spawnGroundObstacle('rate', 0);
-        spawnGroundObstacle('earnings', jit(64));
+        spawnGroundObstacle('earnings', jit(150));
       }
       if(roll > 0.35) spawnDollarArc(130, 4, GROUND_Y-120);
     } else if(curStageIdx === 1){
@@ -980,10 +981,10 @@
         spawnGroundObstacle('earnings', 0);
       } else if(roll < 0.66){
         spawnGroundObstacle('rate', 0);
-        spawnGroundObstacle('earnings', jit(64));
+        spawnGroundObstacle('earnings', jit(150));
       } else if(roll < 0.8){
         spawnGroundObstacle('earnings', 0);
-        spawnGroundObstacle('rate', jit(60));
+        spawnGroundObstacle('rate', jit(150));
       } else if(roll < 0.92){
         spawnAerialObstacle(0);
       } else {
@@ -1001,10 +1002,10 @@
         spawnAerialObstacle(0);
       } else if(roll < 0.62){
         spawnGroundObstacle('rate', 0);
-        spawnGroundObstacle('earnings', jit(62));
+        spawnGroundObstacle('earnings', jit(150));
       } else if(roll < 0.76){
         spawnGroundObstacle('earnings', 0);
-        spawnGroundObstacle('rate', jit(58));
+        spawnGroundObstacle('rate', jit(150));
         spawnAerialObstacle(jit(390));
       } else if(roll < 0.88){
         spawnGroundObstacle('rate', 0);
