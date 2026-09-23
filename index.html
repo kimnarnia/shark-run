@@ -672,11 +672,11 @@
 
   // ---------- Stage config ----------
   const STAGES = [
-    { key:'premarket', name:'프리마켓', from:0, to:50, mult:1.0, spawnMin:78, spawnMax:112, sky:['dawnTop','dawnMid','dawnBot'],
+    { key:'premarket', name:'프리마켓', from:0, to:50, mult:1.0, spawnMin:95, spawnMax:135, sky:['dawnTop','dawnMid','dawnBot'],
       tickers:['개장 5분 전, 프리마켓 거래 시작...','연준 발표 대기중...','초스, 출근 준비 완료'] },
-    { key:'open', name:'개장 변동성', from:50, to:100, mult:1.3, spawnMin:54, spawnMax:80, sky:['dayTop','dayMid','dayBot'],
+    { key:'open', name:'개장 변동성', from:50, to:100, mult:1.3, spawnMin:68, spawnMax:98, sky:['dayTop','dayMid','dayBot'],
       tickers:['정규장 개장! 변동성 확대','금리 인상 우려 급부상','어닝쇼크 속출 중'] },
-    { key:'witching', name:'마녀의 날', from:100, to:Infinity, mult:1.6, spawnMin:40, spawnMax:60, sky:['stormTop','stormMid','stormBot'],
+    { key:'witching', name:'마녀의 날', from:100, to:Infinity, mult:1.6, spawnMin:52, spawnMax:76, sky:['stormTop','stormMid','stormBot'],
       tickers:['쿼드러플 위칭 데이 돌입','공매도 세력 출현!','변동성 지수 폭등 중'] }
   ];
   function stageIndexAt(dist){
@@ -698,6 +698,7 @@
   }
 
   // ---------- Game state ----------
+  const MAX_HEARTS = 5; // was 3 — 10,000원(67개) 모으려면 그만큼 오래 버텨야 해서 여유를 크게 늘림
   const GROUND_Y = 560;
   const GRAVITY = 2400;        // px/s^2, always applied
   const SHORT_JUMP_V = -760;   // single tap — clears every normal obstacle on its own
@@ -781,7 +782,7 @@
     elapsed = 0;
     spawnTimer = 0;
     nextSpawnGap = 70;
-    hearts = 3;
+    hearts = MAX_HEARTS;
     invulnT = 0;
     buffT = 0;
     buffKind = '';
@@ -968,7 +969,7 @@
     // breathe (or scoop a coin arc) instead of an obstacle every single time
     const clearWave = Math.random() < 0.12;
     if(clearWave){
-      if(Math.random() > 0.4) spawnDollarArc(90, 4, GROUND_Y-120);
+      if(Math.random() > 0.3) spawnDollarArc(90, 5, GROUND_Y-120);
       if(Math.random() < 0.05) spawnBuff(200);
       return;
     }
@@ -981,7 +982,7 @@
         spawnGroundObstacle('rate', 0);
         spawnGroundObstacle('earnings', jit(150));
       }
-      if(roll > 0.35) spawnDollarArc(130, 4, GROUND_Y-120);
+      if(roll > 0.25) spawnDollarArc(130, 5, GROUND_Y-120);
     } else if(curStageIdx === 1){
       if(roll < 0.28){
         spawnGroundObstacle('rate', 0);
@@ -999,7 +1000,7 @@
         spawnGroundObstacle('earnings', 0);
         spawnAerialObstacle(jit(150));
       }
-      if(Math.random() > 0.5) spawnDollarArc(150, 4, GROUND_Y-130);
+      if(Math.random() > 0.4) spawnDollarArc(150, 5, GROUND_Y-130);
     } else {
       if(roll < 0.16){
         spawnGroundObstacle('rate', 0);
@@ -1022,7 +1023,7 @@
         spawnAerialObstacle(0);
         spawnGroundObstacle(Math.random()<0.5?'rate':'earnings', jit(190));
       }
-      if(Math.random() > 0.6) spawnDollarArc(170, 5, GROUND_Y-135);
+      if(Math.random() > 0.5) spawnDollarArc(170, 6, GROUND_Y-135);
     }
     if(Math.random() < 0.05) spawnBuff(200);
   }
@@ -1808,7 +1809,7 @@
     ctx.fillStyle = COL.green;
     ctx.fillText(currentWon().toLocaleString()+'원', 16, 74);
 
-    for(let i=0;i<3;i++){
+    for(let i=0;i<MAX_HEARTS;i++){
       ctx.font='16px sans-serif';
       ctx.fillStyle = i < hearts ? '#FF5A6E' : 'rgba(255,255,255,0.18)';
       ctx.fillText('♥', LW-30-i*22, 60);
