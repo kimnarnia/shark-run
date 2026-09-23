@@ -701,7 +701,7 @@
   const GROUND_Y = 560;
   const GRAVITY = 2400;        // px/s^2, always applied
   const SHORT_JUMP_V = -760;   // single tap — clears every normal obstacle on its own
-  const LONG_JUMP_V = -1080;   // a 2nd quick tap mid-jump upgrades it to a long jump (wide combos / aerial dodges)
+  const LONG_JUMP_V = -1080;   // a 2nd quick tap mid-jump upgrades it to a long jump (clears wide combo gaps)
   const DOUBLE_TAP_WINDOW = 0.35; // seconds the 2nd tap has to land to upgrade the jump
   const BASE_SCROLL = 210;     // px/s at mult 1.0
   const BASE_METERS_PER_SEC = 6;
@@ -936,9 +936,14 @@
     obstacles.push({ type:kind, aerial:false, x: LW + xOffset, y: GROUND_Y - s.h, w:s.w, h:s.h, label:pick.label, icon:pick.icon, hit:false });
   }
   function spawnAerialObstacle(xOffset){
-    // flies low enough that a short hop passes under it — only a long jump collides
+    // hovers just above the ground — a normal short jump clears it exactly
+    // like a ground obstacle, but standing/running under it does not.
+    // (it used to fly high enough that only a long jump ever reached it,
+    // which meant it was never a real threat in normal play — a short jump,
+    // or just not jumping at all, always dodged it for free.)
     const pick = BEAR_AERIAL[Math.floor(Math.random()*BEAR_AERIAL.length)];
-    obstacles.push({ type:'short', aerial:true, x: LW + xOffset, y: 265, w:58, h:80, label:pick.label, icon:pick.icon, hit:false });
+    const w = 40, h = 70;
+    obstacles.push({ type:'short', aerial:true, x: LW + xOffset, y: GROUND_Y-h-15, w, h, label:pick.label, icon:pick.icon, hit:false });
   }
   function spawnDollarArc(xOffset, count, baseY){
     const icon = COIN_ICONS[Math.floor(Math.random()*COIN_ICONS.length)];
@@ -992,7 +997,7 @@
         spawnAerialObstacle(0);
       } else {
         spawnGroundObstacle('earnings', 0);
-        spawnAerialObstacle(jit(70));
+        spawnAerialObstacle(jit(150));
       }
       if(Math.random() > 0.5) spawnDollarArc(150, 4, GROUND_Y-130);
     } else {
@@ -1000,7 +1005,7 @@
         spawnGroundObstacle('rate', 0);
       } else if(roll < 0.3){
         spawnGroundObstacle('earnings', 0);
-        spawnAerialObstacle(jit(56));
+        spawnAerialObstacle(jit(150));
       } else if(roll < 0.46){
         spawnAerialObstacle(0);
       } else if(roll < 0.62){
