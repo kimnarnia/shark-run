@@ -1651,7 +1651,7 @@
       // floating in open sky with no ground line to anchor against, the
       // full 1.4x read as ballooning/pulsating (made worse by the bob
       // animation) — a smaller bump is enough to still look bigger
-      const AERIAL_VIS_SCALE = 1.15;
+      const AERIAL_VIS_SCALE = 1.0; // user flagged this as too big twice even at 1.15 — leave it at its real hitbox size
       const ax = o.x+o.w/2, ay = o.y+o.h/2;
       ctx.translate(ax,ay); ctx.scale(AERIAL_VIS_SCALE,AERIAL_VIS_SCALE); ctx.translate(-ax,-ay);
       const bob = Math.sin(elapsed*8 + o.x*0.05)*4;
