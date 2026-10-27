@@ -1643,15 +1643,21 @@
   function drawObstacle(o){
     ctx.save();
     if(o.knocked){
-      // smashed-aside debris spins as it flies off, tumbling around its
-      // own center — shrinks + fades as it goes so a tall/narrow icon
-      // swinging sideways mid-spin doesn't read as suddenly "growing"
-      // (its rotated diagonal reach is bigger than its upright width)
-      const shrink = clamp(1 - (o.knockAge||0)*0.9, 0.3, 1);
-      ctx.globalAlpha *= shrink;
+      // smashed-aside debris spins fast (up to ~10 rad/s) as it flies off —
+      // a tall/narrow icon mid-spin sweeps a diagonal reach well past its
+      // upright footprint, which read as the obstacle suddenly "growing".
+      // compensate scale against the rotation angle itself (not just time)
+      // so its on-screen footprint never exceeds its own longest side
+      const ang = o.krotT || 0;
+      const c = Math.abs(Math.cos(ang)), s = Math.abs(Math.sin(ang));
+      const rotatedSpan = Math.max(o.w*c + o.h*s, o.w*s + o.h*c);
+      const rotComp = Math.max(o.w, o.h) / rotatedSpan;
+      const fade = clamp(1 - (o.knockAge||0)*0.9, 0.3, 1);
+      const shrink = rotComp * fade;
+      ctx.globalAlpha *= fade;
       const cx = o.x+o.w/2, cy = o.y+o.h/2;
       ctx.translate(cx,cy);
-      ctx.rotate(o.krotT||0);
+      ctx.rotate(ang);
       ctx.scale(shrink,shrink);
       ctx.translate(-cx,-cy);
     }
