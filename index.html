@@ -51,7 +51,7 @@
     min-height: 100%; /* not 100dvh: same unreliable-dvh WebViews that broke the canvas sizing can also make this taller than the real screen */
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: none;
-    touch-action: manipulation;
+    touch-action: none; /* jumping accepts a tap landing anywhere on the page, not just the canvas — 'manipulation' still let that area pan slightly */
     display: flex;
     justify-content: center;
     font-family: 'Mona12TextKR', 'Malgun Gothic', sans-serif;
@@ -979,7 +979,12 @@
   // itself instead of trusting the meta tag to be enough.
   document.addEventListener('gesturestart', (e)=>e.preventDefault());
   document.addEventListener('gesturechange', (e)=>e.preventDefault());
-  document.addEventListener('touchmove', (e)=>{ if(e.touches.length > 1) e.preventDefault(); }, { passive:false });
+  // block ALL touchmove, not just multi-touch — this is a tap-only game with
+  // no scrollable content, so there's no legitimate single-finger drag/pan
+  // to allow, and a finger drifting slightly during a fast double-tap (the
+  // 2단 점프 motion) was enough on some mobile browsers to trigger native
+  // elastic-scroll/pan, which read as "the screen moves every time I jump"
+  document.addEventListener('touchmove', (e)=>e.preventDefault(), { passive:false });
   let lastTouchEnd = 0;
   document.addEventListener('touchend', (e)=>{
     const now = Date.now();
