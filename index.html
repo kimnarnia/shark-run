@@ -1624,13 +1624,21 @@
       ctx.rotate(o.krotT||0);
       ctx.translate(-cx,-cy);
     }
+    // visual-only enlargement — the hitbox (o.w/o.h, used for collision)
+    // is untouched; only the drawn icon grows, anchored so ground signs
+    // grow upward from the ground line instead of sinking into it
+    const VIS_SCALE = 1.4;
     if(o.aerial){
+      const ax = o.x+o.w/2, ay = o.y+o.h/2;
+      ctx.translate(ax,ay); ctx.scale(VIS_SCALE,VIS_SCALE); ctx.translate(-ax,-ay);
       const bob = Math.sin(elapsed*8 + o.x*0.05)*4;
       ctx.translate(o.x, o.y+bob);
       if(o.icon==='meteor') drawAerialMeteor(o.w,o.h);
       else drawAerialBat(o.w,o.h);
       if(!o.knocked) drawTag(o.w/2, -6, o.label, COL.red);
     } else if(o.type==='rate'){
+      const ax = o.x+o.w/2, ay = o.y+o.h;
+      ctx.translate(ax,ay); ctx.scale(VIS_SCALE,VIS_SCALE); ctx.translate(-ax,-ay);
       ctx.translate(o.x,o.y);
       // common signpost base, distinct crest per icon
       ctx.fillStyle = '#5A5E70';
@@ -1641,6 +1649,8 @@
       else drawTallCrash(o.w,o.h);
       if(!o.knocked) drawTag(o.w/2, -4, o.label, COL.red);
     } else if(o.type==='earnings'){
+      const ax = o.x+o.w/2, ay = o.y+o.h;
+      ctx.translate(ax,ay); ctx.scale(VIS_SCALE,VIS_SCALE); ctx.translate(-ax,-ay);
       ctx.translate(o.x,o.y);
       if(o.icon==='vice') drawShortVice(o.w,o.h);
       else drawShortVirus(o.w,o.h);
