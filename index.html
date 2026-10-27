@@ -505,13 +505,11 @@
   const ctx = canvas.getContext('2d');
 
   // ---------- Mascot art (3D-rendered 초스, replaces the old hand-drawn vector shark) ----------
-  // no dedicated jump pose yet — falls back to the running pose (slightly
-  // rotated) until one is generated; swap MASCOT.jump's src to add it later
   function loadMascot(name){ const img = new Image(); img.src = 'assets/mascot/'+name+'.webp'; return img; }
   const MASCOT = {
     idle: loadMascot('idle'),
     running: loadMascot('running'),
-    jump: loadMascot('running'),
+    jump: loadMascot('jump'),
     wave: loadMascot('wave'),
     victory: loadMascot('victory'),
     surprise: loadMascot('surprise'),
@@ -1253,6 +1251,7 @@
     drawTrendLine();
     drawBuildings();
     drawGroundStrip();
+    drawSnow();
     if(state==='arriving') drawArrivalDoor();
 
     for(const it of items) drawItem(it);
@@ -1367,6 +1366,34 @@
     const wx = distance * 3;
     drawBuildingLayer(buildingsFar, wx*0.35, COL.buildFar, GROUND_Y-4);
     drawBuildingLayer(buildingsNear, wx*0.6, COL.buildNear, GROUND_Y+2);
+  }
+
+  // ---------- Snow (ambient, runs regardless of game state) ----------
+  const SNOW_COUNT = 46;
+  const snowflakes = Array.from({length: SNOW_COUNT}, () => ({
+    x: Math.random()*LW,
+    y: Math.random()*LH,
+    r: 1.2 + Math.random()*2.2,
+    vy: 28 + Math.random()*42,
+    drift: 10 + Math.random()*18,
+    phase: Math.random()*Math.PI*2,
+    freq: 0.6 + Math.random()*0.8,
+  }));
+  function updateSnow(dt){
+    for(const f of snowflakes){
+      f.y += f.vy*dt;
+      f.phase += f.freq*dt;
+      if(f.y > LH+6){ f.y = -6; f.x = Math.random()*LW; }
+    }
+  }
+  function drawSnow(){
+    for(const f of snowflakes){
+      const x = f.x + Math.sin(f.phase)*f.drift;
+      ctx.globalAlpha = 0.5 + 0.4*Math.sin(f.phase*0.7);
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(x, f.y, f.r, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
   }
 
   function drawGroundStrip(){
@@ -1498,14 +1525,13 @@
       ctx.restore();
     }
 
-    // picks the 3D mascot pose: idle before a run starts, a slight lean
-    // while airborne (no dedicated jump art yet — falls back to the running
-    // pose via MASCOT.jump until one is generated), running otherwise
+    // picks the 3D mascot pose: idle before a run starts, jump while
+    // airborne, running otherwise
     const img = state==='start' ? MASCOT.idle : (!player.onGround ? MASCOT.jump : MASCOT.running);
     if(img.complete && img.naturalWidth){
       const bob = player.onGround ? Math.abs(Math.sin(player.legPhase))*3 : 0;
       const lean = player.onGround ? 0 : clamp(player.vy/900, -1, 1) * 0.14;
-      const drawH = h*1.9; // bigger than the hitbox — the plush art has soft padding around the character
+      const drawH = h*1.35; // a bit bigger than the hitbox — the plush art has soft padding around the character
       const drawW = drawH * (img.naturalWidth/img.naturalHeight);
       ctx.save();
       ctx.rotate(lean);
@@ -1933,6 +1959,7 @@
     if(lastT===null) lastT = t;
     const dt = (t-lastT)/1000;
     lastT = t;
+    updateSnow(Math.min(dt, 1/30));
     update(dt);
     draw();
     requestAnimationFrame(frame);
