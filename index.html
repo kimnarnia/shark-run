@@ -1275,6 +1275,10 @@
             activeBuffLabel = it.label;
             sfx.buff();
             spawnParticles(it.x,it.y,16,COL.gold,150);
+            // players kept jumping out of habit even while invincible,
+            // not realizing they could just run straight through — spell
+            // it out explicitly the moment the buff is picked up
+            if(buffKind==='invuln') toast('무적 상태! 점프 안 해도 그냥 뚫고 지나가요 🦈');
           }
           items.splice(i,1);
         }
