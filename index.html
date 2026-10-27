@@ -515,6 +515,15 @@
     surprise: loadMascot('surprise'),
     thinking: loadMascot('thinking'),
   };
+  // each source image has a different amount of transparent padding around
+  // the character (measured via alpha-channel bounding box), so scaling
+  // every pose to the same canvas height still renders different actual
+  // character sizes — these per-pose multipliers correct back to a common
+  // size, using the running pose (the main gameplay sprite) as the baseline
+  const MASCOT_SCALE = {
+    idle: 1.02, running: 1.0, jump: 1.16, wave: 0.97,
+    victory: 0.99, surprise: 0.97, thinking: 0.98,
+  };
 
   // some in-app WebViews (e.g. Slack's) fail to honor CSS aspect-ratio through
   // the nested flex/min-height:100dvh chain and collapse the screen to a
@@ -1527,11 +1536,12 @@
 
     // picks the 3D mascot pose: idle before a run starts, jump while
     // airborne, running otherwise
-    const img = state==='start' ? MASCOT.idle : (!player.onGround ? MASCOT.jump : MASCOT.running);
+    const pose = state==='start' ? 'idle' : (!player.onGround ? 'jump' : 'running');
+    const img = MASCOT[pose];
     if(img.complete && img.naturalWidth){
       const bob = player.onGround ? Math.abs(Math.sin(player.legPhase))*3 : 0;
       const lean = player.onGround ? 0 : clamp(player.vy/900, -1, 1) * 0.14;
-      const drawH = h*1.35; // a bit bigger than the hitbox — the plush art has soft padding around the character
+      const drawH = h*1.35*MASCOT_SCALE[pose]; // a bit bigger than the hitbox — the plush art has soft padding around the character
       const drawW = drawH * (img.naturalWidth/img.naturalHeight);
       ctx.save();
       ctx.rotate(lean);
