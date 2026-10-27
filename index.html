@@ -1684,8 +1684,13 @@
       else drawTallCrash(o.w,o.h);
       if(!o.knocked) drawTag(o.w/2, -4, o.label, COL.red);
     } else if(o.type==='earnings'){
+      // these icons already nearly fill their own hitbox even unscaled
+      // (the virus blob's spikes especially) — the full 1.4x bump that
+      // works for the slim rate signposts made this one balloon visibly
+      // past its box, which read as "growing" just like the aerial icon did
+      const EARNINGS_VIS_SCALE = 1.15;
       const ax = o.x+o.w/2, ay = o.y+o.h;
-      ctx.translate(ax,ay); ctx.scale(VIS_SCALE,VIS_SCALE); ctx.translate(-ax,-ay);
+      ctx.translate(ax,ay); ctx.scale(EARNINGS_VIS_SCALE,EARNINGS_VIS_SCALE); ctx.translate(-ax,-ay);
       ctx.translate(o.x,o.y);
       if(o.icon==='vice') drawShortVice(o.w,o.h);
       else drawShortVirus(o.w,o.h);
