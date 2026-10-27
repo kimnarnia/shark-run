@@ -816,7 +816,7 @@
 
   let player, obstacles, items, particles, distance, elapsed, spawnTimer, nextSpawnGap,
       hearts, invulnT, buffT, buffKind, activeBuffLabel, shakeT, shakeMag, coinWon, tickerX, curStageIdx, stageAnnounceT,
-      arriveT, arrivedFinale;
+      arriveT, arrivedFinale, bigHintT, bigHintText;
 
   const ARRIVE_DOOR_X = LW*0.7;   // where the building door sits — the shark runs to here, not off-screen
   const ARRIVE_DURATION = 1.6;    // total cutscene length before the end screen shows
@@ -842,6 +842,8 @@
     stageAnnounceT = 1.4;
     arriveT = 0;
     arrivedFinale = false;
+    bigHintT = 0;
+    bigHintText = '';
   }
   resetGame();
 
@@ -1192,6 +1194,7 @@
       spawnParticles(player.x+player.w/2, player.y+player.h/2, 1, COL.gold, 12);
     }
     if(shakeT > 0) shakeT -= dt;
+    if(bigHintT > 0) bigHintT -= dt;
 
     // spawn logic
     spawnTimer += dt*60;
@@ -1215,6 +1218,7 @@
         o.x += o.kvx*dt;
         o.y += o.kvy*dt;
         o.krotT = (o.krotT||0) + o.krot*dt;
+        o.knockAge = (o.knockAge||0) + dt;
         if(o.y > LH+60 || o.x < -80 || o.x > LW+80){ obstacles.splice(i,1); }
         continue;
       }
@@ -1278,8 +1282,11 @@
             // players kept jumping out of habit even while invincible,
             // not realizing they could just run straight through — spell
             // it out explicitly the moment the buff is picked up
-            if(buffKind==='invuln') toast('무적 상태! 점프 안 해도 그냥 뚫고 지나가요 🦈');
-            else if(buffKind==='magnet') toast('머니마그넷! 화면 속 돈이 저절로 끌려와요 🧲');
+            // a small HUD tag or a bottom toast were both too easy to miss
+            // while actively focused on jumping — flash it big, dead
+            // center, where the player's eyes already are mid-dodge
+            if(buffKind==='invuln'){ bigHintT = 1.4; bigHintText = '그냥 뚫고 지나가세요!'; }
+            else if(buffKind==='magnet'){ bigHintT = 1.4; bigHintText = '돈이 저절로 끌려와요!'; }
           }
           items.splice(i,1);
         }
@@ -1636,11 +1643,16 @@
   function drawObstacle(o){
     ctx.save();
     if(o.knocked){
-      // smashed-aside debris spins as it flies off — tumbling around its
-      // own center, not the usual upright signpost
+      // smashed-aside debris spins as it flies off, tumbling around its
+      // own center — shrinks + fades as it goes so a tall/narrow icon
+      // swinging sideways mid-spin doesn't read as suddenly "growing"
+      // (its rotated diagonal reach is bigger than its upright width)
+      const shrink = clamp(1 - (o.knockAge||0)*0.9, 0.3, 1);
+      ctx.globalAlpha *= shrink;
       const cx = o.x+o.w/2, cy = o.y+o.h/2;
       ctx.translate(cx,cy);
       ctx.rotate(o.krotT||0);
+      ctx.scale(shrink,shrink);
       ctx.translate(-cx,-cy);
     }
     // visual-only enlargement — the hitbox (o.w/o.h, used for collision)
@@ -2003,6 +2015,23 @@
       ctx.fillText(STAGES[curStageIdx].name, LW/2, LH*0.32);
       ctx.globalAlpha = 1;
       ctx.textAlign='left';
+    }
+
+    if(bigHintT>0 && bigHintText){
+      // dead-center and large on purpose — a small HUD tag or a bottom
+      // toast were both reported as "never noticed, too busy jumping"
+      const fadeOut = clamp(bigHintT/0.3, 0, 1); // only the last 0.3s fades, stays fully visible otherwise
+      ctx.globalAlpha = fadeOut;
+      ctx.font = "bold 20px 'Mona12TextKR', sans-serif";
+      ctx.textAlign = 'center';
+      const tw = ctx.measureText(bigHintText).width + 36;
+      panel(LW/2-tw/2, LH*0.42-24, tw, 48);
+      ctx.fillStyle = COL.paper;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(bigHintText, LW/2, LH*0.42);
+      ctx.globalAlpha = 1;
+      ctx.textAlign='left';
+      ctx.textBaseline='alphabetic';
     }
   }
 
