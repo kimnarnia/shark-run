@@ -217,7 +217,7 @@
     background: rgba(10,15,31,0.55);
     color: var(--paper);
     font-size: 14px;
-    display: flex;
+    display: none; /* only shown mid-run — JS toggles this to flex */
     align-items: center;
     justify-content: center;
     cursor: pointer;
@@ -699,7 +699,11 @@
     else bgmEl.pause();
   });
   // lets the player freeze the frame to take a native screenshot without
-  // the run continuing (and dying) underneath them while they do it
+  // the run continuing (and dying) underneath them while they do it —
+  // only meaningful mid-run, so hidden on the start/end screens
+  function syncPauseVisibility(){
+    document.getElementById('pauseToggle').style.display = (state==='playing'||state==='arriving') ? 'flex' : 'none';
+  }
   document.getElementById('pauseToggle').addEventListener('click', ()=>{
     if(!paused && state !== 'playing' && state !== 'arriving') return;
     paused = !paused;
@@ -970,6 +974,7 @@
     hideEndScreen();
     resetGame();
     state = 'playing';
+    syncPauseVisibility();
   }
   endRetryBtn.addEventListener('click', retry);
   endShareBtn.addEventListener('click', shareChallenge);
@@ -992,7 +997,7 @@
       spawnParticles(player.x+player.w/2, player.y+player.h, 8, COL.paper, 100);
     }
   }
-  function startGame(){ ensureAudio(); state='playing'; }
+  function startGame(){ ensureAudio(); state='playing'; syncPauseVisibility(); }
 
   window.addEventListener('keydown', (e)=>{
     if(e.code === 'Space' || e.code === 'ArrowUp'){
@@ -1358,6 +1363,7 @@
 
   function endGame(){
     state = 'gameover';
+    syncPauseVisibility();
     if(distance > best){
       best = distance;
       try{ localStorage.setItem('sharkRunBest', String(best)); }catch(e){}
