@@ -1381,6 +1381,8 @@
     ctx.translate(ox,oy);
 
     drawSky();
+    drawStars();
+    drawMoon();
     drawBuildings();
     drawGroundStrip();
     drawSnow();
@@ -1417,6 +1419,56 @@
     // faint bear/bull mood wash
     ctx.fillStyle = buffT>0 ? 'rgba(245,185,66,0.07)' : 'rgba(229,72,77,0.06)';
     ctx.fillRect(0,0,LW,GROUND_Y);
+  }
+
+  // ---------- Year-end sky dressing: gold full moon + twinkling stars ----------
+  // sits clear of the HUD (distance/stage text top-left, hearts top-right)
+  // and below both, so nothing competes with gameplay info for attention
+  const MOON_X = LW*0.74, MOON_Y = 150, MOON_R = 22;
+  function drawMoon(){
+    const glow = ctx.createRadialGradient(MOON_X,MOON_Y,MOON_R*0.5, MOON_X,MOON_Y,MOON_R*2.8);
+    glow.addColorStop(0, 'rgba(245,185,66,0.32)');
+    glow.addColorStop(1, 'rgba(245,185,66,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(MOON_X,MOON_Y,MOON_R*2.8,0,Math.PI*2); ctx.fill();
+
+    ctx.fillStyle = COL.gold2;
+    ctx.beginPath(); ctx.arc(MOON_X,MOON_Y,MOON_R,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(200,150,50,0.25)'; // soft craters for texture, not a flat disc
+    ctx.beginPath(); ctx.arc(MOON_X-7,MOON_Y-5,5,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(MOON_X+6,MOON_Y+7,3.4,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(MOON_X+2,MOON_Y-9,2.4,0,Math.PI*2); ctx.fill();
+  }
+
+  const STAR_COUNT = 24;
+  const stars = Array.from({length: STAR_COUNT}, () => ({
+    x: Math.random()*LW,
+    y: 20 + Math.random()*(GROUND_Y*0.55),
+    r: 1 + Math.random()*1.5,
+    phase: Math.random()*Math.PI*2,
+    freq: 0.5 + Math.random()*1.1,
+    big: Math.random() < 0.18, // a few bigger 4-point sparkles for emphasis
+  }));
+  function drawStars(){
+    const px = distance*0.4; // slow parallax so they're not glued to the HUD
+    for(const s of stars){
+      const x = ((s.x - px) % LW + LW) % LW;
+      const tw = 0.45 + 0.55*Math.max(0, Math.sin(elapsed*s.freq + s.phase));
+      ctx.globalAlpha = tw;
+      ctx.fillStyle = s.big ? COL.gold2 : '#fff';
+      if(s.big){
+        const r = s.r*2.4;
+        ctx.beginPath();
+        ctx.moveTo(x, s.y-r); ctx.lineTo(x+r*0.28, s.y-r*0.28);
+        ctx.lineTo(x+r, s.y); ctx.lineTo(x+r*0.28, s.y+r*0.28);
+        ctx.lineTo(x, s.y+r); ctx.lineTo(x-r*0.28, s.y+r*0.28);
+        ctx.lineTo(x-r, s.y); ctx.lineTo(x-r*0.28, s.y-r*0.28);
+        ctx.closePath(); ctx.fill();
+      } else {
+        ctx.beginPath(); ctx.arc(x, s.y, s.r, 0, Math.PI*2); ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
   }
 
   const buildingsFar = seedBuildings(9, 40, 90, 120);
