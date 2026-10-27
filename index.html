@@ -1029,8 +1029,13 @@
     }
   }
   function spawnBuff(xOffset){
-    const pick = BULL_RALLIES[Math.floor(Math.random()*BULL_RALLIES.length)];
-    items.push({ type:'buff', x: LW + xOffset, y: GROUND_Y-140, r:18, taken:false, pulse:0, label:pick.label, icon:pick.icon });
+    // magnet was getting the same 1-in-7 odds as every invuln flavor
+    // (~2% of all waves) and the user never ran into one by chance —
+    // weight it up so it actually shows up within a normal play session
+    const invulnOnly = BULL_RALLIES.filter(b=>b.kind==='invuln');
+    const magnetEntry = BULL_RALLIES.find(b=>b.kind==='magnet');
+    const pick = Math.random() < 0.35 ? magnetEntry : invulnOnly[Math.floor(Math.random()*invulnOnly.length)];
+    items.push({ type:'buff', x: LW + xOffset, y: GROUND_Y-140, r:18, taken:false, pulse:0, label:pick.label, icon:pick.icon, kind:pick.kind });
   }
 
   // small randomized offset so a repeated combo never sits at the exact
