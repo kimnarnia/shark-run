@@ -164,8 +164,7 @@
       border-radius: 22px;
     }
     .eyebrow { display: none; }
-    h1 { font-size: clamp(20px, 5.5dvh, 34px); }
-    .tagline { font-size: 11px; line-height: 1.35; }
+    .tagline { font-size: 11px; line-height: 1.35; margin-top: 16px; }
     .controls-hint { font-size: 10px; gap: 10px; }
     .credit { display: none; }
   }
@@ -448,7 +447,6 @@
 
 <div class="page">
   <div class="eyebrow">SHARK ON WALL ST.</div>
-  <h1>샤크런</h1>
   <p class="tagline">뉴욕증시 마감 땡! 오늘도 살아남은 <b>초스</b> 상어의 퇴근길.<br>장애물을 피해 오늘 번 수익금을 무사히 집까지 챙겨가세요!</p>
 
   <div class="game-area">
@@ -462,7 +460,7 @@
       <div class="end-screen" id="endScreen" aria-hidden="true">
         <div class="end-decor"></div>
         <div class="end-content">
-          <p class="end-headline" id="endHeadline">폭락장을 뚫고<br>퇴근 코앞까지 왔다네</p>
+          <p class="end-headline" id="endHeadline">폭락장을 뚫고<br>집앞까지 거의 왔다네</p>
           <div class="end-bubble" id="endBubble">거의 다 왔어, 초스!</div>
           <img class="end-shark" id="endSharkImg" src="assets/mascot/thinking.webp" alt="" aria-hidden="true">
           <div class="end-stats">
@@ -679,10 +677,10 @@
 
   // ---------- Stage config ----------
   const STAGES = [
-    { key:'premarket', name:'장마감 전', from:0, to:50, mult:1.15, spawnMin:95, spawnMax:135, sky:['dawnTop','dawnMid','dawnBot'],
+    { key:'premarket', name:'퇴근길 시작', from:0, to:50, mult:1.15, spawnMin:95, spawnMax:135, sky:['dawnTop','dawnMid','dawnBot'],
       tickers:['뉴욕증시 마감! 막판 정산 중...','연준 발표 대기중...','초스, 퇴근 준비 완료'] },
-    { key:'open', name:'마감 임박', from:50, to:100, mult:1.5, spawnMin:68, spawnMax:98, sky:['dayTop','dayMid','dayBot'],
-      tickers:['장마감 임박, 변동성 확대','금리 인상 우려 급부상','어닝쇼크 속출 중'] },
+    { key:'open', name:'퇴근길 정체', from:50, to:100, mult:1.5, spawnMin:68, spawnMax:98, sky:['dayTop','dayMid','dayBot'],
+      tickers:['퇴근길 정체, 변동성 확대','금리 인상 우려 급부상','어닝쇼크 속출 중'] },
     { key:'witching', name:'마녀의 날', from:100, to:Infinity, mult:2.2, spawnMin:52, spawnMax:76, sky:['stormTop','stormMid','stormBot'],
       tickers:['쿼드러플 위칭 데이 돌입','공매도 세력 출현!','변동성 지수 폭등 중'] }
   ];
@@ -842,7 +840,7 @@
       endCaptionEl.innerHTML = challengerName+'님의 목표는 <b>'+challengeWon.toLocaleString()+'원</b>이었어요';
       endSharkImgEl.src = beat ? 'assets/mascot/victory.webp' : 'assets/mascot/surprise.webp';
     } else {
-      endHeadlineEl.innerHTML = '폭락장을 뚫고<br>퇴근 코앞까지 왔다네';
+      endHeadlineEl.innerHTML = '폭락장을 뚫고<br>집앞까지 거의 왔다네';
       endBubbleEl.textContent = bubbleLines[Math.floor(Math.random()*bubbleLines.length)];
       if(won < WON_CAP){
         endCaptionEl.innerHTML = (WON_CAP-won).toLocaleString()+'원만 더 모으면 <b>🦈 오늘의 관심종목 TOP 3</b> 공개';
@@ -1413,31 +1411,45 @@
   }
 
   function drawArrivalDoor(){
-    const dx = ARRIVE_DOOR_X, dh = 150, dw = 64;
+    // 월가 사무실이 아니라 초스의 집 — 퇴근길의 목적지
+    const dx = ARRIVE_DOOR_X, dh = 110, dw = 100;
     const bx = dx - dw/2;
     ctx.save();
-    // the building itself
+    // cozy house body + peaked roof
     ctx.fillStyle = COL.buildNear;
-    ctx.fillRect(bx, GROUND_Y-dh-40, dw, dh+40);
-    ctx.fillStyle = 'rgba(245,185,66,0.55)';
-    for(let ry=GROUND_Y-dh-30; ry<GROUND_Y-dh; ry+=16){
-      for(let rx=bx+8; rx<bx+dw-8; rx+=14) ctx.fillRect(rx,ry,7,9);
-    }
+    ctx.fillRect(bx, GROUND_Y-dh, dw, dh);
+    ctx.fillStyle = '#6B2E2E';
+    ctx.beginPath();
+    ctx.moveTo(bx-10, GROUND_Y-dh);
+    ctx.lineTo(dx, GROUND_Y-dh-46);
+    ctx.lineTo(bx+dw+10, GROUND_Y-dh);
+    ctx.closePath(); ctx.fill();
+    // chimney with a little drifting smoke
+    ctx.fillStyle = '#3A2B08';
+    ctx.fillRect(bx+dw-24, GROUND_Y-dh-38, 14, 24);
+    const sOff = Math.sin(arriveT*2)*3;
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.beginPath(); ctx.arc(bx+dw-17, GROUND_Y-dh-46+sOff, 5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(bx+dw-13, GROUND_Y-dh-56+sOff*1.4, 4, 0, Math.PI*2); ctx.fill();
+    // warm lit windows either side of the door
+    ctx.fillStyle = 'rgba(255,217,138,0.7)';
+    roundRect(bx+10, GROUND_Y-dh+16, 20, 20, 3); ctx.fill();
+    roundRect(bx+dw-30, GROUND_Y-dh+16, 20, 20, 3); ctx.fill();
     // glowing doorway the shark runs into
     const glow = 0.5 + Math.sin(arriveT*6)*0.15;
-    const g = ctx.createRadialGradient(dx,GROUND_Y-dh*0.4,4, dx,GROUND_Y-dh*0.4,dw*0.9);
+    const g = ctx.createRadialGradient(dx,GROUND_Y-dh*0.4,4, dx,GROUND_Y-dh*0.4,dw*0.7);
     g.addColorStop(0, `rgba(255,217,138,${glow})`);
     g.addColorStop(1, 'rgba(255,217,138,0)');
     ctx.fillStyle = g;
-    ctx.fillRect(bx-20, GROUND_Y-dh, dw+40, dh);
+    ctx.fillRect(bx-15, GROUND_Y-dh, dw+30, dh);
     ctx.fillStyle = COL.gold2;
-    roundRect(dx-22, GROUND_Y-dh, 44, dh, 10); ctx.fill();
+    roundRect(dx-20, GROUND_Y-dh+38, 40, dh-38, 10); ctx.fill();
     ctx.fillStyle = '#3A2B08';
-    roundRect(dx-16, GROUND_Y-dh+10, 32, dh-10, 8); ctx.fill();
+    roundRect(dx-14, GROUND_Y-dh+46, 28, dh-46, 8); ctx.fill();
     ctx.fillStyle = COL.gold;
     ctx.font = "bold 11px 'Mona12TextKR', sans-serif";
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-    ctx.fillText('WALL ST.', dx, GROUND_Y-dh-14);
+    ctx.fillText('🏠 MY SWEET HOME', dx, GROUND_Y-dh-54);
     ctx.restore();
   }
 
@@ -1907,7 +1919,7 @@
 
     ctx.font = "bold 30px 'Mona12TextKR', monospace";
     ctx.fillStyle = COL.red;
-    ctx.fillText('🔔 마감 땡!', LW/2, LH*0.28+60);
+    ctx.fillText('마감 땡!', LW/2, LH*0.28+60);
 
     if(challengeWon){
       ctx.font = "bold 16px 'Mona12TextKR', sans-serif";
