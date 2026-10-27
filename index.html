@@ -1194,6 +1194,16 @@
     // obstacles
     for(let i=obstacles.length-1;i>=0;i--){
       const o = obstacles[i];
+      if(o.knocked){
+        // smashed aside while invincible — goes flying instead of just
+        // vanishing, so "invincible" feels like plowing through obstacles
+        o.kvy += 1400*dt;
+        o.x += o.kvx*dt;
+        o.y += o.kvy*dt;
+        o.krotT = (o.krotT||0) + o.krot*dt;
+        if(o.y > LH+60 || o.x < -80 || o.x > LW+80){ obstacles.splice(i,1); }
+        continue;
+      }
       o.x += dx;
       if(o.x + o.w < -20){ obstacles.splice(i,1); continue; }
       const invulnActive = buffT>0 && buffKind==='invuln';
@@ -1207,6 +1217,11 @@
         if(hearts <= 0){ endGame(); return; }
       } else if(!o.hit && invulnActive && rectsOverlap(player.x,player.y,player.w,player.h, o.x,o.y,o.w,o.h)){
         o.hit = true;
+        o.knocked = true;
+        const fromLeft = (player.x+player.w/2) <= (o.x+o.w/2);
+        o.kvx = (fromLeft ? 1 : -1) * (260 + Math.random()*180);
+        o.kvy = -(520 + Math.random()*260);
+        o.krot = (Math.random()*2-1) * 10;
         shakeT = 0.18; shakeMag = 5; // a light thump, not the full damage-hit shake — but still felt
         sfx.smash();
         spawnParticles(o.x+o.w/2, o.y+o.h/2, 16, COL.gold, 200);
@@ -1601,12 +1616,20 @@
 
   function drawObstacle(o){
     ctx.save();
+    if(o.knocked){
+      // smashed-aside debris spins as it flies off — tumbling around its
+      // own center, not the usual upright signpost
+      const cx = o.x+o.w/2, cy = o.y+o.h/2;
+      ctx.translate(cx,cy);
+      ctx.rotate(o.krotT||0);
+      ctx.translate(-cx,-cy);
+    }
     if(o.aerial){
       const bob = Math.sin(elapsed*8 + o.x*0.05)*4;
       ctx.translate(o.x, o.y+bob);
       if(o.icon==='meteor') drawAerialMeteor(o.w,o.h);
       else drawAerialBat(o.w,o.h);
-      drawTag(o.w/2, -6, o.label, COL.red);
+      if(!o.knocked) drawTag(o.w/2, -6, o.label, COL.red);
     } else if(o.type==='rate'){
       ctx.translate(o.x,o.y);
       // common signpost base, distinct crest per icon
@@ -1616,12 +1639,12 @@
       else if(o.icon==='bubble') drawTallBubble(o.w,o.h);
       else if(o.icon==='bank') drawTallBank(o.w,o.h);
       else drawTallCrash(o.w,o.h);
-      drawTag(o.w/2, -4, o.label, COL.red);
+      if(!o.knocked) drawTag(o.w/2, -4, o.label, COL.red);
     } else if(o.type==='earnings'){
       ctx.translate(o.x,o.y);
       if(o.icon==='vice') drawShortVice(o.w,o.h);
       else drawShortVirus(o.w,o.h);
-      drawTag(o.w/2, -4, o.label, COL.red);
+      if(!o.knocked) drawTag(o.w/2, -4, o.label, COL.red);
     }
     ctx.restore();
   }
