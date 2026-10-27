@@ -706,7 +706,16 @@
   const COIN_ICONS = ['coin','won','bill'];                        // dollar-arc pickup icons — one style per spawned arc
 
   // 오늘의 관심종목 — 직접 갱신 (10,000원 달성 시 TOP3 공개, 같은 지점에서 퇴근 연출도 트리거)
-  const TOP3_TICKERS = ['NVDA', 'AVGO', 'AMZN'];
+  // 서학개미들이 흔히 아는 대형주 위주 — 매번 이 중에서 3개를 무작위로 뽑음
+  const TICKER_POOL = ['NVDA','AVGO','AMZN','AAPL','MSFT','GOOGL','META','TSLA','AMD','TSM','NFLX','COST','PLTR','MU','QCOM'];
+  function pickTop3Tickers(){
+    const pool = TICKER_POOL.slice();
+    const picked = [];
+    for(let i=0;i<3;i++){
+      picked.push(pool.splice(Math.floor(Math.random()*pool.length), 1)[0]);
+    }
+    return picked;
+  }
   const WON_CAP = 10000; // currentWon()'s ceiling, the TOP3 reveal goal, and the arrival cutscene trigger — all the same number now
   const COIN_VALUE = 150; // 원 per base dollar-item collected (bigger 500/1,000원 coins are rolled separately — see pickCoinValue)
 
@@ -909,7 +918,7 @@
     }
     if(won >= WON_CAP){
       secretTagEl.textContent = '🎉 TOP 3 공개!';
-      secretListEl.textContent = TOP3_TICKERS.join('  ·  ');
+      secretListEl.textContent = pickTop3Tickers().join('  ·  ');
       secretSubEl.innerHTML = '초스가 오늘 번 종목이에요 🦈💛<br>내일은 새로운 TOP 3로 또 만나요, 꼭 다시 와야 해요!';
       endSecretEl.classList.add('show');
     } else {
