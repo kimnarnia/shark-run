@@ -1686,12 +1686,13 @@
       // smashed-aside debris spins fast (up to ~10 rad/s) as it flies off —
       // a tall/narrow icon mid-spin sweeps a diagonal reach well past its
       // upright footprint, which read as the obstacle suddenly "growing".
-      // compensate scale against the rotation angle itself (not just time)
-      // so its on-screen footprint never exceeds its own longest side
+      // compensating against only the longest side still let it round out
+      // into a visibly bigger blob around 45° — compensate by AREA instead,
+      // so its on-screen footprint never reads as bigger than standing upright
       const ang = o.krotT || 0;
       const c = Math.abs(Math.cos(ang)), s = Math.abs(Math.sin(ang));
-      const rotatedSpan = Math.max(o.w*c + o.h*s, o.w*s + o.h*c);
-      const rotComp = Math.max(o.w, o.h) / rotatedSpan;
+      const bw = o.w*c + o.h*s, bh = o.w*s + o.h*c;
+      const rotComp = Math.sqrt((o.w*o.h) / (bw*bh));
       const fade = clamp(1 - (o.knockAge||0)*0.9, 0.3, 1);
       const shrink = rotComp * fade;
       ctx.globalAlpha *= fade;
