@@ -206,6 +206,26 @@
   }
   .sound-toggle:focus-visible { outline: 2px solid var(--bull-gold); outline-offset: 2px; }
 
+  .pause-toggle {
+    position: absolute;
+    top: 10px;
+    right: 48px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(10,15,31,0.55);
+    color: var(--paper);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 7;
+    backdrop-filter: blur(2px);
+  }
+  .pause-toggle:focus-visible { outline: 2px solid var(--bull-gold); outline-offset: 2px; }
+
   .controls-hint {
     display: flex;
     gap: 14px;
@@ -487,6 +507,7 @@
       <audio id="bgm" src="assets/audio/bgm.mp3" loop preload="none"></audio>
       <div class="screen-glare"></div>
       <button class="sound-toggle" id="soundToggle" aria-label="소리 켜기/끄기">🔊</button>
+      <button class="pause-toggle" id="pauseToggle" aria-label="일시정지/재생 (화면 캡쳐용)">⏸</button>
 
       <div class="end-screen" id="endScreen" aria-hidden="true">
         <div class="end-decor"></div>
@@ -677,6 +698,14 @@
     if(soundOn) bgmEl.play().catch(()=>{});
     else bgmEl.pause();
   });
+  // lets the player freeze the frame to take a native screenshot without
+  // the run continuing (and dying) underneath them while they do it
+  document.getElementById('pauseToggle').addEventListener('click', ()=>{
+    if(!paused && state !== 'playing' && state !== 'arriving') return;
+    paused = !paused;
+    document.getElementById('pauseToggle').textContent = paused ? '▶' : '⏸';
+    if(!paused) lastT = null; // resuming after a real-time gap shouldn't count as one huge dt
+  });
 
   // ---------- Historical bear/bull market labels ----------
   // each entry pairs a label with a distinct icon key so obstacles look different, not just named differently
@@ -756,6 +785,7 @@
   const BASE_METERS_PER_SEC = 6;
 
   let state = 'start'; // start | playing | gameover
+  let paused = false; // freezes the frame so the player can take a native screenshot without losing the run
   let best = 0;
   try { best = parseFloat(localStorage.getItem('sharkRunBest')||'0') || 0; } catch(e){}
 
@@ -822,6 +852,8 @@
   const ARRIVE_DURATION = 1.6;    // total cutscene length before the end screen shows
 
   function resetGame(){
+    paused = false;
+    document.getElementById('pauseToggle').textContent = '⏸';
     player = { x:64, y:GROUND_Y-64, w:52, h:64, vy:0, onGround:true, airJumpReady:false, landGraceT:0, legPhase:0 };
     obstacles = [];
     items = [];
@@ -944,6 +976,7 @@
 
   // ---------- Input (tap = jump, tap again anytime while airborne = one extra air jump) ----------
   function pressStart(){
+    if(paused) return; // a stray tap on the frozen canvas shouldn't queue up a jump for when it resumes
     if(state === 'start'){ startGame(); return; }
     if(state === 'gameover'){ retry(); return; }
     if(state !== 'playing') return;
@@ -1138,6 +1171,7 @@
   function update(dt){
     dt = Math.min(dt, 1/30);
 
+    if(paused) return; // frame stays frozen as-is — draw() still runs so the screen keeps rendering
     if(state === 'start'){
       return;
     }
