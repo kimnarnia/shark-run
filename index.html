@@ -449,7 +449,7 @@
 <div class="page">
   <div class="eyebrow">SHARK ON WALL ST.</div>
   <h1>샤크런</h1>
-  <p class="tagline">뉴욕증시 마감 5분 전, <b>초스</b> 상어의 퇴근길이 시작됩니다.<br>장애물을 피해 수익금을 최대한 많이 챙겨보세요.</p>
+  <p class="tagline">뉴욕증시 마감 땡! 오늘도 살아남은 <b>초스</b> 상어의 퇴근길.<br>장애물을 피해 오늘 번 수익금을 무사히 집까지 챙겨가세요!</p>
 
   <div class="game-area">
   <div class="cabinet">
@@ -479,7 +479,7 @@
         </div>
         <div class="end-actions">
           <button class="end-share-btn" id="endShareBtn">🦈 친구에게 도전장 보내기</button>
-          <button class="end-cta" id="endRetryBtn">다시 퇴근하기</button>
+          <button class="end-cta" id="endRetryBtn">다시 집으로 출발</button>
         </div>
       </div>
     </div>
@@ -606,11 +606,6 @@
     return `rgb(${r},${g},${bl})`;
   }
   function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
-  function fmtClock(sec){
-    sec = Math.max(0, Math.ceil(sec));
-    const m = Math.floor(sec/60), s = sec%60;
-    return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-  }
 
   // ---------- Audio (lightweight synthesized SFX + a quiet BGM loop) ----------
   let actx = null, soundOn = true;
@@ -685,7 +680,7 @@
   // ---------- Stage config ----------
   const STAGES = [
     { key:'premarket', name:'장마감 전', from:0, to:50, mult:1.15, spawnMin:95, spawnMax:135, sky:['dawnTop','dawnMid','dawnBot'],
-      tickers:['장마감 5분 전, 막판 거래 분주...','연준 발표 대기중...','초스, 퇴근 준비 완료'] },
+      tickers:['뉴욕증시 마감! 막판 정산 중...','연준 발표 대기중...','초스, 퇴근 준비 완료'] },
     { key:'open', name:'마감 임박', from:50, to:100, mult:1.5, spawnMin:68, spawnMax:98, sky:['dayTop','dayMid','dayBot'],
       tickers:['장마감 임박, 변동성 확대','금리 인상 우려 급부상','어닝쇼크 속출 중'] },
     { key:'witching', name:'마녀의 날', from:100, to:Infinity, mult:2.2, spawnMin:52, spawnMax:76, sky:['stormTop','stormMid','stormBot'],
@@ -778,7 +773,7 @@
   }
 
   let player, obstacles, items, particles, distance, elapsed, spawnTimer, nextSpawnGap,
-      hearts, invulnT, buffT, buffKind, activeBuffLabel, shakeT, shakeMag, coinWon, tickerX, curStageIdx, stageAnnounceT, preOpenT,
+      hearts, invulnT, buffT, buffKind, activeBuffLabel, shakeT, shakeMag, coinWon, tickerX, curStageIdx, stageAnnounceT,
       arriveT, arrivedFinale;
 
   const ARRIVE_DOOR_X = LW*0.7;   // where the building door sits — the shark runs to here, not off-screen
@@ -807,7 +802,6 @@
     arrivedFinale = false;
   }
   resetGame();
-  preOpenT = 300;
 
   // ---------- End screen (DOM) ----------
   const endScreen = document.getElementById('endScreen');
@@ -1067,8 +1061,6 @@
     dt = Math.min(dt, 1/30);
 
     if(state === 'start'){
-      preOpenT -= dt;
-      if(preOpenT <= 0) preOpenT = 300;
       return;
     }
     if(state === 'arriving'){
@@ -1913,12 +1905,9 @@
     ctx.fillStyle=COL.paper;
     ctx.fillText('SHARK RUN', LW/2, LH*0.28);
 
-    ctx.font = "bold 13px 'Mona12TextKR', monospace";
-    ctx.fillStyle = COL.muted;
-    ctx.fillText('마감까지', LW/2, LH*0.28+34);
     ctx.font = "bold 30px 'Mona12TextKR', monospace";
-    ctx.fillStyle = preOpenT<60 ? COL.red : COL.gold;
-    ctx.fillText(fmtClock(preOpenT), LW/2, LH*0.28+70);
+    ctx.fillStyle = COL.red;
+    ctx.fillText('🔔 마감 땡!', LW/2, LH*0.28+60);
 
     if(challengeWon){
       ctx.font = "bold 16px 'Mona12TextKR', sans-serif";
@@ -1927,7 +1916,7 @@
     } else {
       ctx.font = "20px 'Mona12TextKR', sans-serif";
       ctx.fillStyle = '#fff';
-      ctx.fillText('월가로 달려라!', LW/2, LH*0.28+108);
+      ctx.fillText('초스의 수익금을 지켜라!', LW/2, LH*0.28+108);
     }
 
     panel(28,LH*0.28+130,LW-56,LH*0.24);
@@ -1942,7 +1931,7 @@
     roundRect(LW/2-74, LH*0.28+130+78, 148, 42, 21); ctx.fill();
     ctx.fillStyle = '#241505';
     ctx.font="bold 14px 'Mona12TextKR', sans-serif";
-    ctx.fillText('퇴근 시작', LW/2, LH*0.28+130+104);
+    ctx.fillText('집으로 출발', LW/2, LH*0.28+130+104);
     ctx.textAlign='left';
   }
 
