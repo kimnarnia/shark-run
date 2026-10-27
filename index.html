@@ -838,7 +838,7 @@
     endDistanceEl.textContent = Math.floor(distance)+'m · '+STAGES[curStageIdx].name + (record?' · 🏆 신기록':'');
     if(arrivedFinale){
       endHeadlineEl.innerHTML = '월가 출근<br>완료! 🏢';
-      endBubbleEl.textContent = '오늘 하루도 해냈다, 초스!';
+      endBubbleEl.textContent = '산타 초스, 임무 완수! 🎄';
       endCaptionEl.innerHTML = challengeWon
         ? (won > challengeWon ? challengerName+'님의 도전장도 씹어먹었다!' : challengerName+'님의 '+challengeWon.toLocaleString()+'원엔 아깝게 못 미쳤어요')
         : '';
@@ -862,7 +862,7 @@
     if(won >= WON_CAP){
       secretTagEl.textContent = '🎉 TOP 3 공개!';
       secretListEl.textContent = TOP3_TICKERS.join('  ·  ');
-      secretSubEl.innerHTML = '오늘 초스 상어가 주목하는 종목입니다.<br>내일 새로운 TOP 3가 공개됩니다 — 내일 다시 도전해보세요!';
+      secretSubEl.innerHTML = '초스가 콕 찍어온 오늘의 종목이에요 🦈💛<br>내일은 새로운 TOP 3로 또 만나요, 꼭 다시 와야 해요!';
       endSecretEl.classList.add('show');
     } else {
       endSecretEl.classList.remove('show');
