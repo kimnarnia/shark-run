@@ -1048,7 +1048,7 @@
     // weight it up so it actually shows up within a normal play session
     const invulnOnly = BULL_RALLIES.filter(b=>b.kind==='invuln');
     const magnetEntry = BULL_RALLIES.find(b=>b.kind==='magnet');
-    const pick = Math.random() < 0.35 ? magnetEntry : invulnOnly[Math.floor(Math.random()*invulnOnly.length)];
+    const pick = Math.random() < 0.5 ? magnetEntry : invulnOnly[Math.floor(Math.random()*invulnOnly.length)];
     items.push({ type:'buff', x: LW + xOffset, y: GROUND_Y-140, r:18, taken:false, pulse:0, label:pick.label, icon:pick.icon, kind:pick.kind });
   }
 
@@ -1063,7 +1063,7 @@
     const clearWave = Math.random() < 0.12;
     if(clearWave){
       if(Math.random() > 0.3) spawnDollarArc(90, 5, GROUND_Y-120);
-      if(Math.random() < 0.15) spawnBuff(200);
+      if(Math.random() < 0.22) spawnBuff(200);
       return;
     }
     // combos (2 obstacles in one wave) always need two separate, correctly
@@ -1119,7 +1119,7 @@
       }
       if(Math.random() > 0.5) spawnDollarArc(170, 6, GROUND_Y-135);
     }
-    if(Math.random() < 0.15) spawnBuff(200);
+    if(Math.random() < 0.22) spawnBuff(200);
   }
 
   // ---------- Particles ----------
