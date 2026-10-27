@@ -455,6 +455,7 @@
   <div class="cabinet">
     <div class="screen-wrap">
       <canvas id="game"></canvas>
+      <audio id="bgm" src="assets/audio/bgm.mp3" loop preload="none"></audio>
       <div class="screen-glare"></div>
       <button class="sound-toggle" id="soundToggle" aria-label="소리 켜기/끄기">🔊</button>
 
@@ -611,9 +612,14 @@
     return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
   }
 
-  // ---------- Audio (lightweight synthesized SFX) ----------
+  // ---------- Audio (lightweight synthesized SFX + a quiet BGM loop) ----------
   let actx = null, soundOn = true;
-  function ensureAudio(){ if(!actx){ try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } }
+  const bgmEl = document.getElementById('bgm');
+  bgmEl.volume = 0.16; // "작게" — background, not a feature
+  function ensureAudio(){
+    if(!actx){ try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+    if(soundOn && bgmEl.paused) bgmEl.play().catch(()=>{});
+  }
   function beep(freq, dur, type, gainVal, sweepTo){
     if(!soundOn || !actx) return;
     const t0 = actx.currentTime;
@@ -639,6 +645,8 @@
     ensureAudio();
     soundOn = !soundOn;
     document.getElementById('soundToggle').textContent = soundOn ? '🔊' : '🔇';
+    if(soundOn) bgmEl.play().catch(()=>{});
+    else bgmEl.pause();
   });
 
   // ---------- Historical bear/bull market labels ----------
