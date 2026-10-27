@@ -449,7 +449,7 @@
 <div class="page">
   <div class="eyebrow">SHARK ON WALL ST.</div>
   <h1>샤크런</h1>
-  <p class="tagline">뉴욕증시 개장 5분 전, <b>초스</b> 상어의 출근길이 시작됩니다.<br>장애물을 피해 수익금을 최대한 많이 챙겨보세요.</p>
+  <p class="tagline">뉴욕증시 마감 5분 전, <b>초스</b> 상어의 퇴근길이 시작됩니다.<br>장애물을 피해 수익금을 최대한 많이 챙겨보세요.</p>
 
   <div class="game-area">
   <div class="cabinet">
@@ -462,7 +462,7 @@
       <div class="end-screen" id="endScreen" aria-hidden="true">
         <div class="end-decor"></div>
         <div class="end-content">
-          <p class="end-headline" id="endHeadline">폭락장을 뚫고<br>월가 코앞까지 왔다네</p>
+          <p class="end-headline" id="endHeadline">폭락장을 뚫고<br>퇴근 코앞까지 왔다네</p>
           <div class="end-bubble" id="endBubble">거의 다 왔어, 초스!</div>
           <img class="end-shark" id="endSharkImg" src="assets/mascot/thinking.webp" alt="" aria-hidden="true">
           <div class="end-stats">
@@ -479,7 +479,7 @@
         </div>
         <div class="end-actions">
           <button class="end-share-btn" id="endShareBtn">🦈 친구에게 도전장 보내기</button>
-          <button class="end-cta" id="endRetryBtn">다시 출근하기</button>
+          <button class="end-cta" id="endRetryBtn">다시 퇴근하기</button>
         </div>
       </div>
     </div>
@@ -487,8 +487,8 @@
   </div>
 
   <div class="controls-hint">
-    <span><kbd>탭 1번</kbd> 숏점프</span>
-    <span><kbd>빠르게 탭 2번</kbd> 롱점프</span>
+    <span><kbd>탭 1번</kbd> 점프</span>
+    <span><kbd>공중에서 탭 1번 더</kbd> 2단 점프</span>
   </div>
 
   <p class="credit">CHARGING SHARK CO. — 가상 수익금 최대 10,000원</p>
@@ -639,7 +639,8 @@
     coin: ()=>beep(880,0.09,'square',0.07,1320),
     hit: ()=>beep(160,0.28,'sawtooth',0.14,60),
     buff: ()=>{ beep(520,0.22,'triangle',0.1,1040); setTimeout(()=>beep(780,0.22,'triangle',0.09,1560),90); },
-    stage: ()=>{ beep(660,0.12,'square',0.08,880); setTimeout(()=>beep(990,0.16,'square',0.08,1320),110); }
+    stage: ()=>{ beep(660,0.12,'square',0.08,880); setTimeout(()=>beep(990,0.16,'square',0.08,1320),110); },
+    smash: ()=>{ beep(220,0.1,'square',0.12,80); setTimeout(()=>beep(340,0.08,'square',0.08,600),35); }
   };
   document.getElementById('soundToggle').addEventListener('click', ()=>{
     ensureAudio();
@@ -676,17 +677,17 @@
   ];
   const COIN_ICONS = ['coin','won','bill'];                        // dollar-arc pickup icons — one style per spawned arc
 
-  // 오늘의 관심종목 — 직접 갱신 (10,000원 달성 시 TOP3 공개, 같은 지점에서 출근 연출도 트리거)
+  // 오늘의 관심종목 — 직접 갱신 (10,000원 달성 시 TOP3 공개, 같은 지점에서 퇴근 연출도 트리거)
   const TOP3_TICKERS = ['NVDA', 'AVGO', 'AMZN'];
   const WON_CAP = 10000; // currentWon()'s ceiling, the TOP3 reveal goal, and the arrival cutscene trigger — all the same number now
   const COIN_VALUE = 150; // 원 per base dollar-item collected (bigger 500/1,000원 coins are rolled separately — see pickCoinValue)
 
   // ---------- Stage config ----------
   const STAGES = [
-    { key:'premarket', name:'프리마켓', from:0, to:50, mult:1.15, spawnMin:95, spawnMax:135, sky:['dawnTop','dawnMid','dawnBot'],
-      tickers:['개장 5분 전, 프리마켓 거래 시작...','연준 발표 대기중...','초스, 출근 준비 완료'] },
-    { key:'open', name:'개장 변동성', from:50, to:100, mult:1.5, spawnMin:68, spawnMax:98, sky:['dayTop','dayMid','dayBot'],
-      tickers:['정규장 개장! 변동성 확대','금리 인상 우려 급부상','어닝쇼크 속출 중'] },
+    { key:'premarket', name:'장마감 전', from:0, to:50, mult:1.15, spawnMin:95, spawnMax:135, sky:['dawnTop','dawnMid','dawnBot'],
+      tickers:['장마감 5분 전, 막판 거래 분주...','연준 발표 대기중...','초스, 퇴근 준비 완료'] },
+    { key:'open', name:'마감 임박', from:50, to:100, mult:1.5, spawnMin:68, spawnMax:98, sky:['dayTop','dayMid','dayBot'],
+      tickers:['장마감 임박, 변동성 확대','금리 인상 우려 급부상','어닝쇼크 속출 중'] },
     { key:'witching', name:'마녀의 날', from:100, to:Infinity, mult:2.2, spawnMin:52, spawnMax:76, sky:['stormTop','stormMid','stormBot'],
       tickers:['쿼드러플 위칭 데이 돌입','공매도 세력 출현!','변동성 지수 폭등 중'] }
   ];
@@ -712,9 +713,8 @@
   const MAX_HEARTS = 5; // was 3 — 10,000원(67개) 모으려면 그만큼 오래 버텨야 해서 여유를 크게 늘림
   const GROUND_Y = 560;
   const GRAVITY = 2400;        // px/s^2, always applied — back to the original snappy value (1900 made the jump feel slow/floaty)
-  const SHORT_JUMP_V = -900;   // single tap — was -760; boosted instead of lowering gravity, so timing windows stay forgiving without the jump feeling sluggish
-  const LONG_JUMP_V = -1280;   // a 2nd quick tap mid-jump upgrades it to a long jump (clears wide combo gaps)
-  const DOUBLE_TAP_WINDOW = 0.35; // seconds the 2nd tap has to land to upgrade the jump
+  const SHORT_JUMP_V = -900;   // tap — was -760; boosted instead of lowering gravity, so timing windows stay forgiving without the jump feeling sluggish
+  const AIR_JUMP_V = -900;     // 2단 점프 — tapping again while airborne, any time before landing, grants one extra jump
   const BASE_SCROLL = 210;     // px/s at mult 1.0
   const BASE_METERS_PER_SEC = 6;
 
@@ -779,13 +779,13 @@
 
   let player, obstacles, items, particles, distance, elapsed, spawnTimer, nextSpawnGap,
       hearts, invulnT, buffT, buffKind, activeBuffLabel, shakeT, shakeMag, coinWon, tickerX, curStageIdx, stageAnnounceT, preOpenT,
-      trendPoints, trendNextWx, arriveT, arrivedFinale;
+      arriveT, arrivedFinale;
 
   const ARRIVE_DOOR_X = LW*0.7;   // where the building door sits — the shark runs to here, not off-screen
   const ARRIVE_DURATION = 1.6;    // total cutscene length before the end screen shows
 
   function resetGame(){
-    player = { x:64, y:GROUND_Y-64, w:52, h:64, vy:0, onGround:true, jumpBuffered:false, jumpBufferT:0, landGraceT:0, legPhase:0 };
+    player = { x:64, y:GROUND_Y-64, w:52, h:64, vy:0, onGround:true, airJumpReady:false, landGraceT:0, legPhase:0 };
     obstacles = [];
     items = [];
     particles = [];
@@ -803,8 +803,6 @@
     tickerX = 0;
     curStageIdx = 0;
     stageAnnounceT = 1.4;
-    trendPoints = [{x:0,y:175,up:false}];
-    trendNextWx = 0;
     arriveT = 0;
     arrivedFinale = false;
   }
@@ -837,7 +835,7 @@
     const record = distance >= best-0.5;
     endDistanceEl.textContent = Math.floor(distance)+'m · '+STAGES[curStageIdx].name + (record?' · 🏆 신기록':'');
     if(arrivedFinale){
-      endHeadlineEl.innerHTML = '월가 출근<br>완료! 🏢';
+      endHeadlineEl.innerHTML = '오늘도 무사히<br>퇴근 완료! 🏠';
       endBubbleEl.textContent = '산타 초스, 임무 완수! 🎄';
       endCaptionEl.innerHTML = challengeWon
         ? (won > challengeWon ? challengerName+'님의 도전장도 씹어먹었다!' : challengerName+'님의 '+challengeWon.toLocaleString()+'원엔 아깝게 못 미쳤어요')
@@ -850,7 +848,7 @@
       endCaptionEl.innerHTML = challengerName+'님의 목표는 <b>'+challengeWon.toLocaleString()+'원</b>이었어요';
       endSharkImgEl.src = beat ? 'assets/mascot/victory.webp' : 'assets/mascot/surprise.webp';
     } else {
-      endHeadlineEl.innerHTML = '폭락장을 뚫고<br>월가 코앞까지 왔다네';
+      endHeadlineEl.innerHTML = '폭락장을 뚫고<br>퇴근 코앞까지 왔다네';
       endBubbleEl.textContent = bubbleLines[Math.floor(Math.random()*bubbleLines.length)];
       if(won < WON_CAP){
         endCaptionEl.innerHTML = (WON_CAP-won).toLocaleString()+'원만 더 모으면 <b>🦈 오늘의 관심종목 TOP 3</b> 공개';
@@ -882,7 +880,7 @@
   endRetryBtn.addEventListener('click', retry);
   endShareBtn.addEventListener('click', shareChallenge);
 
-  // ---------- Input (tap = short jump, quick 2nd tap mid-air = long jump) ----------
+  // ---------- Input (tap = jump, tap again anytime while airborne = one extra air jump) ----------
   function pressStart(){
     if(state === 'start'){ startGame(); return; }
     if(state === 'gameover'){ retry(); return; }
@@ -890,12 +888,11 @@
     if(player.onGround){
       player.vy = SHORT_JUMP_V;
       player.onGround = false;
-      player.jumpBuffered = true;
-      player.jumpBufferT = 0;
+      player.airJumpReady = true;
       sfx.jump(false);
-    } else if(player.jumpBuffered && player.jumpBufferT <= DOUBLE_TAP_WINDOW && player.vy < 0){
-      player.vy = LONG_JUMP_V;
-      player.jumpBuffered = false;
+    } else if(player.airJumpReady){
+      player.vy = AIR_JUMP_V;
+      player.airJumpReady = false;
       sfx.jump(true);
       spawnParticles(player.x+player.w/2, player.y+player.h, 8, COL.paper, 100);
     }
@@ -1106,11 +1103,7 @@
       sfx.stage();
     }
 
-    // player physics — a 2nd tap within DOUBLE_TAP_WINDOW upgrades the jump
-    if(player.jumpBuffered){
-      player.jumpBufferT += dt;
-      if(player.jumpBufferT > DOUBLE_TAP_WINDOW) player.jumpBuffered = false;
-    }
+    // player physics
     player.vy += GRAVITY * dt;
     player.y += player.vy * dt;
     if(player.y >= GROUND_Y - player.h){
@@ -1118,8 +1111,7 @@
       player.y = GROUND_Y - player.h;
       player.onGround = true;
       player.vy = 0;
-      player.jumpBuffered = false;
-      player.jumpBufferT = 0;
+      player.airJumpReady = false;
     } else {
       player.onGround = false;
     }
@@ -1161,7 +1153,9 @@
         if(hearts <= 0){ endGame(); return; }
       } else if(!o.hit && invulnActive && rectsOverlap(player.x,player.y,player.w,player.h, o.x,o.y,o.w,o.h)){
         o.hit = true;
-        spawnParticles(o.x+o.w/2, o.y+o.h/2, 8, COL.gold, 120);
+        shakeT = 0.18; shakeMag = 5; // a light thump, not the full damage-hit shake — but still felt
+        sfx.smash();
+        spawnParticles(o.x+o.w/2, o.y+o.h/2, 16, COL.gold, 200);
       }
     }
 
@@ -1227,19 +1221,6 @@
     }
 
     tickerX -= 46*dt;
-
-    // scrolling bear/bull trend-line background — biased down normally, up while buffed
-    const trendWx = distance*1.35;
-    while(trendNextWx < trendWx + LW + 60){
-      const prev = trendPoints[trendPoints.length-1];
-      const wantUp = buffT>0 ? Math.random()<0.78 : Math.random()<0.22;
-      const mag = 10 + Math.random()*16;
-      let ny = prev.y + (wantUp ? -mag : mag);
-      ny = Math.max(95, Math.min(255, ny));
-      trendNextWx += 30;
-      trendPoints.push({ x:trendNextWx, y:ny, up: ny<prev.y });
-    }
-    while(trendPoints.length>2 && trendPoints[1].x < trendWx-80){ trendPoints.shift(); }
   }
 
   function rectsOverlap(ax,ay,aw,ah,bx,by,bw,bh){
@@ -1265,7 +1246,6 @@
     ctx.translate(ox,oy);
 
     drawSky();
-    drawTrendLine();
     drawBuildings();
     drawGroundStrip();
     drawSnow();
@@ -1302,29 +1282,6 @@
     // faint bear/bull mood wash
     ctx.fillStyle = buffT>0 ? 'rgba(245,185,66,0.07)' : 'rgba(229,72,77,0.06)';
     ctx.fillRect(0,0,LW,GROUND_Y);
-  }
-
-  function drawTrendLine(){
-    if(trendPoints.length<2) return;
-    const trendWx = distance*1.35;
-    ctx.save();
-    ctx.lineWidth = 2.5;
-    ctx.lineJoin = 'round';
-    let started = false;
-    for(let i=1;i<trendPoints.length;i++){
-      const a = trendPoints[i-1], b = trendPoints[i];
-      const ax = a.x - trendWx, bx = b.x - trendWx;
-      if(bx < -40 || ax > LW+40) continue;
-      const up = b.up;
-      ctx.strokeStyle = up ? 'rgba(255,216,138,0.5)' : 'rgba(229,72,77,0.42)';
-      ctx.shadowColor = up ? 'rgba(245,185,66,0.55)' : 'rgba(229,72,77,0.3)';
-      ctx.shadowBlur = 7;
-      ctx.beginPath();
-      ctx.moveTo(ax, a.y);
-      ctx.lineTo(bx, b.y);
-      ctx.stroke();
-    }
-    ctx.restore();
   }
 
   const buildingsFar = seedBuildings(9, 40, 90, 120);
@@ -1570,16 +1527,32 @@
     ctx.closePath();
   }
 
+  // a pulsing red halo behind every obstacle, purely decorative (drawn
+  // outside the actual hitbox, never touches collision) so a small sign
+  // still reads as "danger, avoid this" from a glance/at a distance —
+  // players were missing the small obstacle shapes entirely otherwise
+  function drawObstacleWarning(w,h){
+    const pulse = 0.5+0.5*Math.sin(elapsed*6 + w*7);
+    ctx.save();
+    ctx.globalAlpha = 0.18+0.16*pulse;
+    ctx.fillStyle = COL.red;
+    const pad = 7+pulse*3;
+    roundRect(-pad, -pad, w+pad*2, h+pad*2, 9);
+    ctx.fill();
+    ctx.restore();
+  }
   function drawObstacle(o){
     ctx.save();
     if(o.aerial){
       const bob = Math.sin(elapsed*8 + o.x*0.05)*4;
       ctx.translate(o.x, o.y+bob);
+      drawObstacleWarning(o.w,o.h);
       if(o.icon==='meteor') drawAerialMeteor(o.w,o.h);
       else drawAerialBat(o.w,o.h);
       drawTag(o.w/2, -6, o.label, COL.red);
     } else if(o.type==='rate'){
       ctx.translate(o.x,o.y);
+      drawObstacleWarning(o.w,o.h);
       // common signpost base, distinct crest per icon
       ctx.fillStyle = '#5A5E70';
       ctx.fillRect(o.w/2-3, o.h*0.42, 6, o.h*0.58);
@@ -1590,6 +1563,7 @@
       drawTag(o.w/2, -4, o.label, COL.red);
     } else if(o.type==='earnings'){
       ctx.translate(o.x,o.y);
+      drawObstacleWarning(o.w,o.h);
       if(o.icon==='vice') drawShortVice(o.w,o.h);
       else drawShortVirus(o.w,o.h);
       drawTag(o.w/2, -4, o.label, COL.red);
@@ -1941,7 +1915,7 @@
 
     ctx.font = "bold 13px 'Mona12TextKR', monospace";
     ctx.fillStyle = COL.muted;
-    ctx.fillText('개장까지', LW/2, LH*0.28+34);
+    ctx.fillText('마감까지', LW/2, LH*0.28+34);
     ctx.font = "bold 30px 'Mona12TextKR', monospace";
     ctx.fillStyle = preOpenT<60 ? COL.red : COL.gold;
     ctx.fillText(fmtClock(preOpenT), LW/2, LH*0.28+70);
@@ -1959,7 +1933,7 @@
     panel(28,LH*0.28+130,LW-56,LH*0.24);
     ctx.font="12px 'Mona12TextKR', sans-serif";
     ctx.fillStyle=COL.paper;
-    ctx.fillText('탭 1번=숏점프  ·  빠르게 2번=롱점프', LW/2, LH*0.28+130+30);
+    ctx.fillText('탭 1번=점프  ·  공중에서 한 번 더=2단 점프', LW/2, LH*0.28+130+30);
     ctx.font="11px 'Mona12TextKR', monospace";
     ctx.fillStyle = COL.muted;
     ctx.fillText(challengeWon ? ('목표: '+challengeWon.toLocaleString()+'원 돌파') : ('최고 기록  '+Math.floor(best)+'m'), LW/2, LH*0.28+130+56);
@@ -1968,7 +1942,7 @@
     roundRect(LW/2-74, LH*0.28+130+78, 148, 42, 21); ctx.fill();
     ctx.fillStyle = '#241505';
     ctx.font="bold 14px 'Mona12TextKR', sans-serif";
-    ctx.fillText('출근 시작', LW/2, LH*0.28+130+104);
+    ctx.fillText('퇴근 시작', LW/2, LH*0.28+130+104);
     ctx.textAlign='left';
   }
 
